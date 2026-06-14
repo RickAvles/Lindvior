@@ -1,6 +1,8 @@
 spring:
   application:
-    name: smart-parking-platform
+    name: Smart parking Platform
+
+
 
   datasource:
     url: jdbc:postgresql://localhost:5432/smartparking
@@ -16,3 +18,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+application:
+  version: 1.0.0
+  environment: development
