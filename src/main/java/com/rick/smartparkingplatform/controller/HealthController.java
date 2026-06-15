@@ -1,6 +1,6 @@
 package com.rick.smartparkingplatform.controller;
 
-import com.rick.smartparkingplatform.dto.HealthResponse;
+import com.rick.smartparkingplatform.dto.response.HealthResponse;
 import com.rick.smartparkingplatform.service.HealthService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;

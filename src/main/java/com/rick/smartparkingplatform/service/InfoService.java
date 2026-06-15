@@ -1,6 +1,6 @@
 package com.rick.smartparkingplatform.service;
 
-import com.rick.smartparkingplatform.dto.InfoResponse;
+import com.rick.smartparkingplatform.dto.response.InfoResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
