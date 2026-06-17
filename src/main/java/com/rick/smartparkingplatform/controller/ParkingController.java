@@ -3,6 +3,7 @@ package com.rick.smartparkingplatform.controller;
 import com.rick.smartparkingplatform.dto.request.ParkingRequest;
 import com.rick.smartparkingplatform.dto.response.ParkingResponse;
 import com.rick.smartparkingplatform.service.ParkingService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,7 +20,7 @@ public class ParkingController {
     }
 
     @PostMapping
-    public ParkingResponse create(@RequestBody ParkingRequest request) {
+    public ParkingResponse create(@Valid @RequestBody ParkingRequest request) {
         return parkingService.create(request);
     }
 
@@ -34,11 +35,11 @@ public class ParkingController {
     }
 
     @PutMapping("/{id}")
-    public ParkingResponse update(@PathVariable UUID id, @RequestBody ParkingRequest request) {
+    public ParkingResponse update(@PathVariable UUID id, @Valid @RequestBody ParkingRequest request) {
         return parkingService.update(id, request);
     }
 
-    @DeleteMapping("/id")
+    @DeleteMapping("/{id}")
     public void delete(@PathVariable UUID id) {
         parkingService.delete(id);
     }

@@ -3,6 +3,7 @@ package com.rick.smartparkingplatform.service;
 import com.rick.smartparkingplatform.dto.request.ParkingRequest;
 import com.rick.smartparkingplatform.dto.response.ParkingResponse;
 import com.rick.smartparkingplatform.entity.Parking;
+import com.rick.smartparkingplatform.exception.ResourceNotFoundException;
 import com.rick.smartparkingplatform.repository.ParkingRepository;
 import org.springframework.stereotype.Service;
 
@@ -54,13 +55,17 @@ public class ParkingService {
     public ParkingResponse findById(UUID id) {
         return parkingRepository.findById(id)
                 .map(this::entityToResponse)
-                .orElseThrow();
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Parking with id " + id + " not found")
+                );
     }
 
     public ParkingResponse update(UUID id, ParkingRequest request) {
         Parking parking = parkingRepository
                 .findById(id)
-                .orElseThrow();
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Parking with id " + id + " not found")
+                );
 
         parking.setName(request.name());
         parking.setAddress(request.address());
@@ -73,7 +78,9 @@ public class ParkingService {
 
     public void delete(UUID id) {
         Parking parking = parkingRepository.findById(id)
-                .orElseThrow();
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Parking with id " + id + " not found")
+                );
 
         parkingRepository.delete(parking);
     }
