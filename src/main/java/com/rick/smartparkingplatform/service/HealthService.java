@@ -1,7 +1,7 @@
 package com.rick.smartparkingplatform.service;
 
 import com.rick.smartparkingplatform.constant.ApplicationConstants;
-import com.rick.smartparkingplatform.dto.HealthResponse;
+import com.rick.smartparkingplatform.dto.response.HealthResponse;
 import com.rick.smartparkingplatform.repository.HealthRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

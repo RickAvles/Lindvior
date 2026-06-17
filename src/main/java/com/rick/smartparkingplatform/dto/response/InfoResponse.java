@@ -1,4 +1,4 @@
-package com.rick.smartparkingplatform.dto;
+package com.rick.smartparkingplatform.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 

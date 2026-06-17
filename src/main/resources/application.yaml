@@ -2,8 +2,6 @@ spring:
   application:
     name: Smart parking Platform
 
-
-
   datasource:
     url: jdbc:postgresql://localhost:5432/smartparking
     username: postgres
