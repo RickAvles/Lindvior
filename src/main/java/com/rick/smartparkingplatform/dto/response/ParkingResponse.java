@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record ParkingResponse(
-
         UUID id,
 
         String name,
@@ -19,6 +18,5 @@ public record ParkingResponse(
 
         @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
         LocalDateTime createdAt
-
 ) {
 }
