@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -17,8 +16,7 @@ import java.util.UUID;
 public class Parking {
 
     @Id
-    @GeneratedValue()
-    @UuidGenerator
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(nullable = false)
@@ -31,8 +29,8 @@ public class Parking {
     private Integer capacity;
 
     @Column(nullable = false)
-    private Boolean active = true;
+    private boolean active = true;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 }

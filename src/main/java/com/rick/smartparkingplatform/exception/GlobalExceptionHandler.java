@@ -2,7 +2,9 @@ package com.rick.smartparkingplatform.exception;
 
 import com.rick.smartparkingplatform.dto.response.ErrorResponse;
 import com.rick.smartparkingplatform.dto.response.FieldValidationError;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -50,5 +52,30 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(404).body(response);
+    }
+
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> handlerBusinessException(BusinessException exception) {
+
+        ErrorResponse response = new ErrorResponse(
+                409,
+                "BUSINESS_ERROR",
+                exception.getMessage(),
+                LocalDateTime.now(),
+                List.of()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handlerBadCredentialsException(BadCredentialsException exception) {
+        ErrorResponse response = new ErrorResponse(
+                401,
+                "AUTHENTICATION_ERROR",
+                exception.getMessage(),
+                LocalDateTime.now(),
+                List.of()
+        );
+        return ResponseEntity.status(401).body(response);
     }
 }

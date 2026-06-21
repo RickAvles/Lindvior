@@ -26,7 +26,7 @@ public class ParkingService {
                 parking.getName(),
                 parking.getAddress(),
                 parking.getCapacity(),
-                parking.getActive(),
+                parking.isActive(),
                 parking.getCreatedAt()
         );
     }
