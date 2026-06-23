@@ -17,6 +17,10 @@ spring:
       hibernate:
         format_sql: true
 
+jwt:
+  secret-key: LindviorSecretSmartParkingPlatformDevelopment2026JWT
+  expiration: 86400000
+
 application:
   version: 1.0.0
   environment: development

@@ -1,18 +1,22 @@
 package com.rick.smartparkingplatform.security.service;
 
+import com.rick.smartparkingplatform.entity.User;
+import com.rick.smartparkingplatform.repository.UserRepository;
 import com.rick.smartparkingplatform.security.dto.LoginRequest;
 import com.rick.smartparkingplatform.security.dto.LoginResponse;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AuthService {
 
     private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
+    private final UserRepository userRepository;
 
     public LoginResponse login(LoginRequest request) {
 
@@ -23,7 +27,11 @@ public class AuthService {
                 )
         );
 
-        return new LoginResponse("Login sucessful");
+        User user = userRepository.findByEmail(request.email()).orElseThrow();
+
+        String token = jwtService.generateToken(user);
+
+        return new LoginResponse(token);
     }
 
 }
