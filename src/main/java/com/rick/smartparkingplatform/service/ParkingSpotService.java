@@ -2,11 +2,13 @@ package com.rick.smartparkingplatform.service;
 
 import com.rick.smartparkingplatform.dto.request.ParkingSpotFilter;
 import com.rick.smartparkingplatform.dto.request.ParkingSpotRequest;
+import com.rick.smartparkingplatform.dto.request.ParkingSpotUpdateRequest;
 import com.rick.smartparkingplatform.dto.response.ParkingSpotResponse;
 import com.rick.smartparkingplatform.entity.Parking;
 import com.rick.smartparkingplatform.entity.ParkingSpot;
 import com.rick.smartparkingplatform.enums.StatusParkingSpot;
 import com.rick.smartparkingplatform.exception.ParkingSpotAlreadyExistsException;
+import com.rick.smartparkingplatform.exception.ResourceNotFoundException;
 import com.rick.smartparkingplatform.repository.ParkingSpotRepository;
 import com.rick.smartparkingplatform.specification.ParkingSpotSpecification;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -83,6 +86,10 @@ public class ParkingSpotService {
         return specification;
     }
 
+    private ParkingSpot findParkingSpotById(UUID id) {
+        return parkingSpotRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Parking spot no found."));
+    }
+
     public Page<ParkingSpotResponse> findAll(Pageable pageable, ParkingSpotFilter filter) {
 
         Specification<ParkingSpot> specification = buildSpecification(filter);
@@ -101,6 +108,16 @@ public class ParkingSpotService {
         }
         ParkingSpot savedParkingSpot = parkingSpotRepository.save(parkingSpot);
         return entityToResponse(savedParkingSpot);
+    }
+
+    public ParkingSpotResponse update(ParkingSpotUpdateRequest request, UUID id) {
+
+        ParkingSpot parkingSpot = findParkingSpotById(id);
+
+        parkingSpot.setSector(request.sector());
+        parkingSpot.setFloor(request.floor());
+
+        return entityToResponse(parkingSpotRepository.save(parkingSpot));
     }
 
 }

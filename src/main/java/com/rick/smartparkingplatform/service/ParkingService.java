@@ -20,6 +20,7 @@ public class ParkingService {
     }
 
     private ParkingResponse entityToResponse(Parking parking) {
+        
         return new ParkingResponse(
                 parking.getId(),
                 parking.getName(),
@@ -47,6 +48,7 @@ public class ParkingService {
     }
 
     public ParkingResponse update(UUID id, ParkingRequest request) {
+
         Parking parking = parkingRepository
                 .findById(id)
                 .orElseThrow(() ->

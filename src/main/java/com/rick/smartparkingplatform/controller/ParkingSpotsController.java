@@ -2,6 +2,7 @@ package com.rick.smartparkingplatform.controller;
 
 import com.rick.smartparkingplatform.dto.request.ParkingSpotFilter;
 import com.rick.smartparkingplatform.dto.request.ParkingSpotRequest;
+import com.rick.smartparkingplatform.dto.request.ParkingSpotUpdateRequest;
 import com.rick.smartparkingplatform.dto.response.ParkingSpotResponse;
 import com.rick.smartparkingplatform.enums.StatusParkingSpot;
 import com.rick.smartparkingplatform.service.ParkingSpotService;
@@ -12,6 +13,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -40,4 +43,8 @@ public class ParkingSpotsController {
         return parkingSpotService.findAll(pageable, filter);
     }
 
+    @PutMapping("/{id}")
+    public ParkingSpotResponse update(@Valid @RequestBody ParkingSpotUpdateRequest request, @PathVariable UUID id) {
+        return parkingSpotService.update(request, id);
+    }
 }
