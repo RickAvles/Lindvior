@@ -1,4 +1,4 @@
-package com.rick.smartparkingplatform.dto.request;
+package com.rick.smartparkingplatform.dto.filter;
 
 import com.rick.smartparkingplatform.enums.StatusParkingSpot;
 

@@ -26,7 +26,7 @@ public class ParkingSession {
     @Column(nullable = false)
     private LocalDateTime entryTime;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private LocalDateTime exitTime;
 
     @Enumerated(EnumType.STRING)
