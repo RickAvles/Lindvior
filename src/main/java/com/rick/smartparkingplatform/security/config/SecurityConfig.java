@@ -44,24 +44,73 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         .requestMatchers(
-                                "/api/v1/users",
-                                "/api/v1/auth/login"
-                        ).permitAll()
+                                "/api/v1/auth/login",
+                                "/api/v1/health",
+                                "/api/v1/info"
+                        )
+                        .permitAll()
+
+                        //User
 
                         .requestMatchers(
                                 HttpMethod.POST,
-                                "/api/v1/parkings"
-                        ).hasRole("ADMIN")
+                                "/api/v1/users"
+                        )
+                        .hasRole("ADMIN")
+
+                        //Parking
+
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/parking"
+                        )
+                        .hasAnyRole("ADMIN", "USER")
 
                         .requestMatchers(
                                 HttpMethod.PUT,
-                                "/api/v1/parkings/**"
-                        ).hasRole("ADMIN")
+                                "/api/v1/parking/**"
+                        )
+                        .hasRole("ADMIN")
+
+                        //ParkingSpots
 
                         .requestMatchers(
-                                HttpMethod.DELETE,
-                                "/api/v1/parkings/**"
-                        ).hasRole("ADMIN")
+                                HttpMethod.GET,
+                                "/api/v1/parking-spots"
+                        )
+                        .hasAnyRole("ADMIN", "USER")
+
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/v1/parking-spots"
+                        )
+                        .hasRole("ADMIN")
+
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/v1/parking-spots/**"
+                        )
+                        .hasRole("ADMIN")
+
+                        //ParkingSession
+
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/parking-sessions"
+                        )
+                        .hasAnyRole("ADMIN", "USER")
+
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/v1/parking-sessions"
+                        )
+                        .hasAnyRole("ADMIN", "USER")
+
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/v1/parking-sessions/*/close"
+                        )
+                        .hasAnyRole("ADMIN", "USER")
 
                         .anyRequest().authenticated()
                 )
