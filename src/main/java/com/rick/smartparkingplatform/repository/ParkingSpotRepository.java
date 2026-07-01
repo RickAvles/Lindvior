@@ -15,5 +15,11 @@ public interface ParkingSpotRepository extends JpaRepository<ParkingSpot, UUID>,
 
     boolean existsByCodeAndParking(String code, Parking parking);
 
+    boolean existsByActiveTrue();
+
+    Long countByActiveTrue();
+
+    Long countByStatusAndActiveTrue(StatusParkingSpot statusParkingSpot);
+
     Optional<ParkingSpot> findFirstByStatusAndActiveTrue(StatusParkingSpot status);
 }

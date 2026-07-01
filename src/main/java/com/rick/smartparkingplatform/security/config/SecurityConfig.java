@@ -96,7 +96,7 @@ public class SecurityConfig {
 
                         .requestMatchers(
                                 HttpMethod.GET,
-                                "/api/v1/parking-sessions"
+                                "/api/v1/parking-sessions/**"
                         )
                         .hasAnyRole("ADMIN", "USER")
 

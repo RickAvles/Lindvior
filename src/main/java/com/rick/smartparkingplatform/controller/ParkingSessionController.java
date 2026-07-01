@@ -8,11 +8,12 @@ import com.rick.smartparkingplatform.service.ParkingSessionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @RestController
@@ -34,15 +35,20 @@ public class ParkingSessionController {
     }
 
     @GetMapping
-    public Page<ParkingSessionResponse> get(@RequestParam(defaultValue = "0") Integer page,
-                                            @RequestParam(defaultValue = "20") Integer size,
+    public Page<ParkingSessionResponse> get(@PageableDefault(page = 0, size = 20) Pageable pageable,
                                             @RequestParam(required = false) String licensePlate,
-                                            @RequestParam(required = false) StatusParkingSession status) {
-
-        Pageable pageable = PageRequest.of(page, size);
-        ParkingSessionFilter filter = new ParkingSessionFilter(licensePlate, status);
+                                            @RequestParam(required = false) StatusParkingSession status,
+                                            @RequestParam(required = false) String parkingSpotCode,
+                                            @RequestParam(required = false) LocalDateTime startDate,
+                                            @RequestParam(required = false) LocalDateTime endDate
+    ) {
+        ParkingSessionFilter filter = new ParkingSessionFilter(licensePlate, status, parkingSpotCode, startDate, endDate);
 
         return parkingSessionService.findAll(pageable, filter);
     }
 
+    @GetMapping("/{id}")
+    public ParkingSessionResponse getById(@PathVariable UUID id) {
+        return parkingSessionService.getById(id);
+    }
 }
