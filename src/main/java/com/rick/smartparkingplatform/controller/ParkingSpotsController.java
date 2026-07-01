@@ -1,6 +1,6 @@
 package com.rick.smartparkingplatform.controller;
 
-import com.rick.smartparkingplatform.dto.request.ParkingSpotFilter;
+import com.rick.smartparkingplatform.dto.filter.ParkingSpotFilter;
 import com.rick.smartparkingplatform.dto.request.ParkingSpotRequest;
 import com.rick.smartparkingplatform.dto.request.ParkingSpotUpdateRequest;
 import com.rick.smartparkingplatform.dto.response.ParkingSpotResponse;

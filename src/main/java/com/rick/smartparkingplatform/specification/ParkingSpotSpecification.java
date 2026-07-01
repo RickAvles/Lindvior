@@ -11,7 +11,6 @@ public class ParkingSpotSpecification {
     }
 
     public static Specification<ParkingSpot> hasFloor(Integer floor) {
-
         return (root, query, builder) -> builder.equal(root.get("floor"), floor);
     }
 
