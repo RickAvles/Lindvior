@@ -7,9 +7,7 @@ import com.rick.smartparkingplatform.entity.ParkingSession;
 import com.rick.smartparkingplatform.entity.ParkingSpot;
 import com.rick.smartparkingplatform.enums.StatusParkingSession;
 import com.rick.smartparkingplatform.enums.StatusParkingSpot;
-import com.rick.smartparkingplatform.exception.NoParkingSpotsAvailableException;
-import com.rick.smartparkingplatform.exception.ParkingAlreadyClosedException;
-import com.rick.smartparkingplatform.exception.ResourceNotFoundException;
+import com.rick.smartparkingplatform.exception.*;
 import com.rick.smartparkingplatform.repository.ParkingSessionRepository;
 import com.rick.smartparkingplatform.repository.ParkingSpotRepository;
 import com.rick.smartparkingplatform.specification.ParkingSessionSpecification;
@@ -53,10 +51,6 @@ public class ParkingSessionService {
         );
     }
 
-    private ParkingSession findParkingSessionById(UUID id) {
-        return parkingSessionRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Parking spot not found."));
-    }
-
     private Specification<ParkingSession> buildSpecification(ParkingSessionFilter filter) {
 
         Specification<ParkingSession> specification = Specification.unrestricted();
@@ -69,7 +63,23 @@ public class ParkingSessionService {
             specification = specification.and(ParkingSessionSpecification.hasStatus(filter.status()));
         }
 
+        if (filter.parkingSpotCode() != null) {
+            specification = specification.and(ParkingSessionSpecification.hasParkingSpotCode(filter.parkingSpotCode()));
+        }
+
+        if (filter.startDate() != null) {
+            specification = specification.and(ParkingSessionSpecification.hasEntryTimeAfter(filter.startDate()));
+        }
+
+        if (filter.endDate() != null) {
+            specification = specification.and(ParkingSessionSpecification.hasEntryTimeBefore(filter.endDate()));
+        }
+
         return specification;
+    }
+
+    private ParkingSession findParkingSessionById(UUID id) {
+        return parkingSessionRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Parking spot not found."));
     }
 
     public Page<ParkingSessionResponse> findAll(Pageable pageable, ParkingSessionFilter filter) {
@@ -82,6 +92,14 @@ public class ParkingSessionService {
     }
 
     public ParkingSessionResponse create(ParkingSessionRequest request) {
+
+        if (!parkingSpotRepository.existsByActiveTrue()) {
+            throw new ParkingCurrentlyUnavailableException();
+        }
+
+        if (parkingSessionRepository.existsByLicensePlateAndStatus(request.licensePlate(), StatusParkingSession.OPEN)) {
+            throw new OpenParkingSessionAlreadyExistsException();
+        }
 
         ParkingSpot spot = parkingSpotRepository.findFirstByStatusAndActiveTrue(StatusParkingSpot.FREE).orElseThrow(NoParkingSpotsAvailableException::new);
 
@@ -113,4 +131,11 @@ public class ParkingSessionService {
 
         return toResponse(sessionSaved);
     }
+
+    public ParkingSessionResponse getById(UUID id) {
+        ParkingSession session = findParkingSessionById(id);
+
+        return toResponse(session);
+    }
+
 }

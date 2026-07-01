@@ -3,6 +3,7 @@ package com.rick.smartparkingplatform.service;
 import com.rick.smartparkingplatform.dto.filter.ParkingSpotFilter;
 import com.rick.smartparkingplatform.dto.request.ParkingSpotRequest;
 import com.rick.smartparkingplatform.dto.request.ParkingSpotUpdateRequest;
+import com.rick.smartparkingplatform.dto.response.OccupancyResponse;
 import com.rick.smartparkingplatform.dto.response.ParkingSpotResponse;
 import com.rick.smartparkingplatform.entity.Parking;
 import com.rick.smartparkingplatform.entity.ParkingSpot;
@@ -17,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -90,6 +93,13 @@ public class ParkingSpotService {
         return parkingSpotRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Parking spot no found."));
     }
 
+
+    private OccupancyResponse toOccupancy(Long totalSpots, Long availableSpots, Long occupiedSpots, BigDecimal occupancyRate) {
+        return new OccupancyResponse(
+                totalSpots, availableSpots, occupiedSpots, occupancyRate
+        );
+    }
+
     public Page<ParkingSpotResponse> findAll(Pageable pageable, ParkingSpotFilter filter) {
 
         Specification<ParkingSpot> specification = buildSpecification(filter);
@@ -118,6 +128,25 @@ public class ParkingSpotService {
         parkingSpot.setFloor(request.floor());
 
         return entityToResponse(parkingSpotRepository.save(parkingSpot));
+    }
+
+    public OccupancyResponse getOccupancy() {
+
+        Long totalSpots = parkingSpotRepository.countByActiveTrue();
+        if (totalSpots == 0) {
+            return toOccupancy(
+                    0L,
+                    0L,
+                    0L,
+                    BigDecimal.ZERO
+            );
+        }
+        Long availableSpots = parkingSpotRepository.countByStatusAndActiveTrue(StatusParkingSpot.FREE);
+        Long occupiedSpots = parkingSpotRepository.countByStatusAndActiveTrue(StatusParkingSpot.OCCUPIED);
+        double occupancy = (occupiedSpots.doubleValue() / totalSpots.doubleValue()) * 100;
+        BigDecimal occupancyRate = BigDecimal.valueOf(occupancy).setScale(2, RoundingMode.HALF_UP);
+
+        return toOccupancy(totalSpots, availableSpots, occupiedSpots, occupancyRate);
     }
 
 }

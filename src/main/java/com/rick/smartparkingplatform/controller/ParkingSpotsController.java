@@ -3,6 +3,7 @@ package com.rick.smartparkingplatform.controller;
 import com.rick.smartparkingplatform.dto.filter.ParkingSpotFilter;
 import com.rick.smartparkingplatform.dto.request.ParkingSpotRequest;
 import com.rick.smartparkingplatform.dto.request.ParkingSpotUpdateRequest;
+import com.rick.smartparkingplatform.dto.response.OccupancyResponse;
 import com.rick.smartparkingplatform.dto.response.ParkingSpotResponse;
 import com.rick.smartparkingplatform.enums.StatusParkingSpot;
 import com.rick.smartparkingplatform.service.ParkingSpotService;
@@ -46,5 +47,10 @@ public class ParkingSpotsController {
     @PutMapping("/{id}")
     public ParkingSpotResponse update(@Valid @RequestBody ParkingSpotUpdateRequest request, @PathVariable UUID id) {
         return parkingSpotService.update(request, id);
+    }
+
+    @GetMapping("/occupancy")
+    public OccupancyResponse getOccupancy() {
+        return parkingSpotService.getOccupancy();
     }
 }
