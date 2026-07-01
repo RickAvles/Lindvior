@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/parkings")
+@RequestMapping("/api/v1/parking")
 public class ParkingController {
 
     private final ParkingService parkingService;
