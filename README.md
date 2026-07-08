@@ -12,6 +12,8 @@
 
 ![Java](https://img.shields.io/badge/Java-21-007396?style=for-the-badge&logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.x-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
+![Spring Security](https://img.shields.io/badge/Spring_Security-6.x-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-Authentication-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Gradle](https://img.shields.io/badge/Gradle-Build-02303A?style=for-the-badge&logo=gradle)
 ![JUnit 5](https://img.shields.io/badge/JUnit-5-25A162?style=for-the-badge)
@@ -34,21 +36,21 @@ authentication, dynamic filtering, and business rules while serving as a product
 
 ```
 
-Client
-│
-▼
-REST API (Spring Boot)
-│
-├── Authentication (JWT)
-├── Business Rules
-├── Validation
-├── Services
-├── Specifications
-└── Persistence
-│
-▼
+                Client
+                   │
+                   ▼
+        Spring Boot REST API
+        ┌──────────────────┐
+        │ Authentication   │
+        │ Validation       │
+        │ Business Rules   │
+        │ Specifications   │
+        │ Persistence      │
+        └──────────────────┘
+                   │
+                   ▼
+             PostgreSQL
 
-PostgreSQL
 
 ```
 
@@ -142,7 +144,7 @@ Frameworks:
 
 # Roadmap
 
-## Completed
+## Completed Milestones
 
 - Parking CRUD
 - Parking Spot Management
