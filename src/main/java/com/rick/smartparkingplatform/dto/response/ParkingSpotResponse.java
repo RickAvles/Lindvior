@@ -1,19 +1,30 @@
 package com.rick.smartparkingplatform.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.rick.smartparkingplatform.enums.SectorType;
 import com.rick.smartparkingplatform.enums.StatusParkingSpot;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record ParkingSpotResponse(
+
         UUID id,
+
         String code,
-        String sector,
+
+        String sectorName,
+
+        SectorType sectorType,
+
         Integer floor,
+
         StatusParkingSpot status,
+
         boolean active,
+
         @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
         LocalDateTime createdAt
+
 ) {
 }

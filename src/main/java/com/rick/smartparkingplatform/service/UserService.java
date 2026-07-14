@@ -24,7 +24,7 @@ public class UserService {
 
         user.setEmail(request.email());
         user.setPassword(passwordEncoder.encode(request.password()));
-        user.setRole(Role.USER);
+        user.setRole(Role.OPERATOR);
         user.setActive(true);
         LocalDateTime now = LocalDateTime.now();
         user.setCreatedAt(now);
