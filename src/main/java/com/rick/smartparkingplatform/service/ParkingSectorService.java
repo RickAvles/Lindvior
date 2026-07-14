@@ -5,6 +5,7 @@ import com.rick.smartparkingplatform.dto.response.ParkingSectorResponse;
 import com.rick.smartparkingplatform.entity.Parking;
 import com.rick.smartparkingplatform.entity.ParkingSector;
 import com.rick.smartparkingplatform.exception.ParkingNotFoundException;
+import com.rick.smartparkingplatform.exception.ParkingSectorAlreadyExistsException;
 import com.rick.smartparkingplatform.exception.ResourceAlreadyExistsException;
 import com.rick.smartparkingplatform.exception.ResourceNotFoundException;
 import com.rick.smartparkingplatform.repository.ParkingRepository;
@@ -99,7 +100,7 @@ public class ParkingSectorService {
                 parkingSector.getName(),
                 parkingSector.getParking())) {
 
-            throw new ResourceAlreadyExistsException();
+            throw new ParkingSectorAlreadyExistsException();
         }
 
         ParkingSector savedParkingSector =
@@ -114,6 +115,14 @@ public class ParkingSectorService {
     public ParkingSectorResponse update(UUID id, ParkingSectorRequest request) {
 
         ParkingSector parkingSector = findParkingSectorById(id);
+
+        if (!parkingSector.getName().equals(request.name())
+                && parkingSectorRepository.existsByNameAndParking(
+                request.name(),
+                parkingSector.getParking())) {
+
+            throw new ParkingSectorAlreadyExistsException();
+        }
 
         parkingSector.setName(request.name());
         parkingSector.setType(request.type());

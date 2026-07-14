@@ -109,16 +109,6 @@ public class ParkingSpotService {
     }
 
     /**
-     * Busca uma vaga pelo identificador.
-     */
-    private ParkingSpot findParkingSpotById(UUID id) {
-
-        return parkingSpotRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Parking spot not found."));
-    }
-
-    /**
      * Constrói a resposta de ocupação do estacionamento.
      */
     private OccupancyResponse toOccupancy(

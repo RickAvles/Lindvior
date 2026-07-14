@@ -102,15 +102,17 @@ public class VehicleService {
 
         Vehicle vehicle = findVehicleById(id);
 
-        vehicle.setLicensePlate(request.licensePlate());
-        vehicle.setType(request.type());
-        vehicle.setColor(request.color());
-
         if (!vehicle.getLicensePlate().equals(request.licensePlate())
                 && vehicleRepository.existsByLicensePlate(request.licensePlate())) {
 
             throw new VehicleAlreadyExistsException();
         }
+
+        vehicle.setLicensePlate(request.licensePlate());
+        vehicle.setType(request.type());
+        vehicle.setColor(request.color());
+
+
 
         Vehicle updatedVehicle = vehicleRepository.save(vehicle);
 

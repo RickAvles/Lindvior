@@ -1,6 +1,5 @@
 package com.rick.smartparkingplatform.repository;
 
-import com.rick.smartparkingplatform.entity.Parking;
 import com.rick.smartparkingplatform.entity.ParkingSector;
 import com.rick.smartparkingplatform.entity.ParkingSpot;
 import com.rick.smartparkingplatform.enums.StatusParkingSpot;
@@ -15,7 +14,7 @@ import java.util.UUID;
 public interface ParkingSpotRepository extends JpaRepository<ParkingSpot, UUID>, JpaSpecificationExecutor<ParkingSpot> {
 
     boolean existsByCodeAndParkingSector(String code, ParkingSector parkingSector);
-    
+
     boolean existsByActiveTrue();
 
     Long countByActiveTrue();

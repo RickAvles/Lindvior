@@ -134,10 +134,6 @@ public class ParkingSessionService {
 
         Vehicle vehicle = vehicleRepository.findByLicensePlate(request.licensePlate()).orElseThrow(VehicleNotFoundException::new);
 
-        if (!parkingSpotRepository.existsByActiveTrue()) {
-            throw new ParkingCurrentlyUnavailableException();
-        }
-
         if (parkingSessionRepository.existsByVehicleAndStatus(
                 vehicle,
                 StatusParkingSession.ACTIVE)) {
@@ -145,6 +141,10 @@ public class ParkingSessionService {
             throw new OpenParkingSessionAlreadyExistsException();
         }
 
+        if (!parkingSpotRepository.existsByActiveTrue()) {
+            throw new ParkingCurrentlyUnavailableException();
+        }
+        
         ParkingSpot parkingSpot = parkingSpotRepository
                 .findFirstByStatusAndActiveTrue(StatusParkingSpot.FREE)
                 .orElseThrow(NoParkingSpotsAvailableException::new);
@@ -167,12 +167,11 @@ public class ParkingSessionService {
     public ParkingSessionResponse close(UUID id) {
 
         ParkingSession parkingSession = findParkingSessionById(id);
+        ParkingSpot parkingSpot = parkingSession.getParkingSpot();
 
         if (parkingSession.getStatus() != StatusParkingSession.ACTIVE) {
             throw new ParkingAlreadyClosedException();
         }
-
-        ParkingSpot parkingSpot = parkingSession.getParkingSpot();
 
         parkingSession.setExitTime(LocalDateTime.now());
         parkingSession.setStatus(StatusParkingSession.FINISHED);
