@@ -1,6 +1,6 @@
 package com.rick.smartparkingplatform.entity;
 
-import com.rick.smartparkingplatform.enums.StatusParkingSpot;
+import com.rick.smartparkingplatform.enums.VehicleType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,32 +15,36 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "parking_spot")
-public class ParkingSpot {
+@Table(
+        name = "vehicle",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = "license_plate")
+        }
+)
+public class Vehicle {
 
     @Id
     @GeneratedValue
     @UuidGenerator
     private UUID id;
 
-    @Column(nullable = false)
-    private String code;
+    @Column(name = "license_plate", nullable = false)
+    private String licensePlate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private StatusParkingSpot status;
+    private VehicleType type;
 
     @Column(nullable = false)
-    private boolean active;
+    private String color;
+
+    @Column(nullable = false)
+    private boolean active = true;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @ManyToOne
-    @JoinColumn(name = "parking_sector_id", nullable = false)
-    private ParkingSector parkingSector;
-
-    @OneToMany(mappedBy = "parkingSpot")
+    @OneToMany(mappedBy = "vehicle")
     private List<ParkingSession> parkingSessions;
 
 }

@@ -6,62 +6,61 @@ import com.rick.smartparkingplatform.entity.Parking;
 import com.rick.smartparkingplatform.exception.ParkingNotFoundException;
 import com.rick.smartparkingplatform.exception.ResourceNotFoundException;
 import com.rick.smartparkingplatform.repository.ParkingRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class ParkingService {
 
     private final ParkingRepository parkingRepository;
 
-    public ParkingService(ParkingRepository parkingRepository) {
-        this.parkingRepository = parkingRepository;
-    }
-
+    /**
+     * Converte uma entidade Parking para o DTO de resposta.
+     */
     private ParkingResponse entityToResponse(Parking parking) {
-        
+
         return new ParkingResponse(
                 parking.getId(),
                 parking.getName(),
                 parking.getAddress(),
+                parking.getCapacity(),
+                parking.isActive(),
                 parking.getCreatedAt()
         );
     }
 
+    /**
+     * Retorna o estacionamento cadastrado.
+     */
     public ParkingResponse getParking() {
 
         Parking parking = parkingRepository
                 .findFirstByOrderByCreatedAtAsc()
                 .orElseThrow(ParkingNotFoundException::new);
 
-        return new ParkingResponse(
-                parking.getId(),
-                parking.getName(),
-                parking.getAddress(),
-                parking.getCreatedAt()
-        );
+        return entityToResponse(parking);
     }
 
-    public Parking getCurrentParkingEntity() {
-        return parkingRepository.findFirstByOrderByCreatedAtAsc().orElseThrow(ParkingNotFoundException::new);
-    }
-
+    /**
+     * Atualiza os dados do estacionamento.
+     */
     public ParkingResponse update(UUID id, ParkingRequest request) {
 
-        Parking parking = parkingRepository
-                .findById(id)
+        Parking parking = parkingRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Parking with id " + id + " not found")
-                );
+                        new ResourceNotFoundException("Parking with id " + id + " not found."));
 
         parking.setName(request.name());
         parking.setAddress(request.address());
+        parking.setCapacity(request.capacity());
+        parking.setActive(request.active());
 
         Parking updatedParking = parkingRepository.save(parking);
 
         return entityToResponse(updatedParking);
     }
-
 
 }

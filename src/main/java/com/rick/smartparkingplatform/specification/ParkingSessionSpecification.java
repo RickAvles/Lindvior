@@ -7,23 +7,51 @@ import org.springframework.data.jpa.domain.Specification;
 import java.time.LocalDateTime;
 
 public class ParkingSessionSpecification {
+
+    /**
+     * Filtra sessões pela placa do veículo.
+     */
     public static Specification<ParkingSession> hasLicensePlate(String licensePlate) {
-        return (root, query, builder) -> builder.equal(root.get("licensePlate"), licensePlate);
+        return (root, query, builder) ->
+                builder.equal(
+                        root.join("vehicle").get("licensePlate"),
+                        licensePlate
+                );
     }
 
+    /**
+     * Filtra sessões pelo status.
+     */
     public static Specification<ParkingSession> hasStatus(StatusParkingSession status) {
-        return (root, query, builder) -> builder.equal(root.get("status"), status);
+        return (root, query, builder) ->
+                builder.equal(root.get("status"), status);
     }
 
+    /**
+     * Filtra sessões pelo código da vaga.
+     */
     public static Specification<ParkingSession> hasParkingSpotCode(String parkingSpotCode) {
-        return (root, query, builder) -> builder.equal(root.get("parkingSpot").get("code"), parkingSpotCode);
+        return (root, query, builder) ->
+                builder.equal(
+                        root.join("parkingSpot").get("code"),
+                        parkingSpotCode
+                );
     }
 
+    /**
+     * Filtra sessões com entrada a partir da data informada.
+     */
     public static Specification<ParkingSession> hasEntryTimeAfter(LocalDateTime startDate) {
-        return (root, query, builder) -> builder.greaterThanOrEqualTo(root.get("entryTime"), startDate);
+        return (root, query, builder) ->
+                builder.greaterThanOrEqualTo(root.get("entryTime"), startDate);
     }
 
-    public static Specification<ParkingSession> hasEntryTimeBefore(LocalDateTime endDate) {
-        return (root, query, builder) -> builder.lessThanOrEqualTo(root.get("exitTime"), endDate);
+    /**
+     * Filtra sessões com saída até a data informada.
+     */
+    public static Specification<ParkingSession> hasExitTimeBefore(LocalDateTime endDate) {
+        return (root, query, builder) ->
+                builder.lessThanOrEqualTo(root.get("exitTime"), endDate);
     }
+
 }

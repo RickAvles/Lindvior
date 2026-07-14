@@ -1,25 +1,20 @@
 package com.rick.smartparkingplatform.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.rick.smartparkingplatform.enums.SectorType;
-import com.rick.smartparkingplatform.enums.StatusParkingSpot;
+import com.rick.smartparkingplatform.enums.VehicleType;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record ParkingSpotResponse(
+public record VehicleResponse(
 
         UUID id,
 
-        String code,
+        String licensePlate,
 
-        String sectorName,
+        VehicleType type,
 
-        SectorType sectorType,
-
-        Integer floor,
-
-        StatusParkingSpot status,
+        String color,
 
         boolean active,
 

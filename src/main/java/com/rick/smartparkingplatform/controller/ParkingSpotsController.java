@@ -2,9 +2,9 @@ package com.rick.smartparkingplatform.controller;
 
 import com.rick.smartparkingplatform.dto.filter.ParkingSpotFilter;
 import com.rick.smartparkingplatform.dto.request.ParkingSpotRequest;
-import com.rick.smartparkingplatform.dto.request.ParkingSpotUpdateRequest;
 import com.rick.smartparkingplatform.dto.response.OccupancyResponse;
 import com.rick.smartparkingplatform.dto.response.ParkingSpotResponse;
+import com.rick.smartparkingplatform.enums.SectorType;
 import com.rick.smartparkingplatform.enums.StatusParkingSpot;
 import com.rick.smartparkingplatform.service.ParkingSpotService;
 import jakarta.validation.Valid;
@@ -14,8 +14,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -31,22 +29,26 @@ public class ParkingSpotsController {
     }
 
     @GetMapping
-    public Page<ParkingSpotResponse> findAll(@RequestParam(defaultValue = "0") Integer page,
-                                             @RequestParam(defaultValue = "20") Integer size,
-                                             @RequestParam(required = false) String sector,
-                                             @RequestParam(required = false) Integer floor,
-                                             @RequestParam(required = false) StatusParkingSpot status,
-                                             @RequestParam(required = false) Boolean active) {
+    public Page<ParkingSpotResponse> findAll(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "20") Integer size,
+            @RequestParam(required = false) String sector,
+            @RequestParam(required = false) SectorType sectorType,
+            @RequestParam(required = false) Integer floor,
+            @RequestParam(required = false) StatusParkingSpot status,
+            @RequestParam(required = false) Boolean active) {
+
         Pageable pageable = PageRequest.of(page, size);
 
-        ParkingSpotFilter filter = new ParkingSpotFilter(sector, floor, status, active);
+        ParkingSpotFilter filter = new ParkingSpotFilter(
+                sector,
+                sectorType,
+                floor,
+                status,
+                active
+        );
 
         return parkingSpotService.findAll(pageable, filter);
-    }
-
-    @PutMapping("/{id}")
-    public ParkingSpotResponse update(@Valid @RequestBody ParkingSpotUpdateRequest request, @PathVariable UUID id) {
-        return parkingSpotService.update(request, id);
     }
 
     @GetMapping("/occupancy")
