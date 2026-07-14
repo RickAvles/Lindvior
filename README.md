@@ -5,7 +5,7 @@
 <h1 align="center">Lindvior</h1>
 
 <p align="center">
-  Modern Smart Parking Platform built with Java & Spring Boot.
+  Intelligent Smart Parking Simulation Platform built with Java & Spring Boot.
 </p>
 
 <p align="center">
@@ -25,33 +25,52 @@
 
 # Overview
 
-Lindvior is a modern Smart Parking Platform focused on scalability, maintainability, and cloud-native backend practices.
+Lindvior is an intelligent Smart Parking Simulation Platform designed to model the behavior of a real-world parking
+facility.
 
-The project simulates a real-world parking management system capable of handling parking availability, vehicle sessions,
-authentication, dynamic filtering, and business rules while serving as a production-oriented backend study project.
+Instead of focusing only on CRUD operations, the project simulates vehicle arrivals, parking allocation, occupancy,
+session lifecycle, and business rules while exposing a modern REST API for administration and monitoring.
+
+The project is being developed as a production-oriented backend application, emphasizing clean architecture,
+maintainability, scalability, automated testing, and modern software engineering practices.
 
 ---
 
 # Architecture
 
 ```
+                   Client
+                      │
+                      ▼
+              REST Controllers
+                      │
+                      ▼
+                Service Layer
+                      │
+      ┌───────────────┼────────────────┐
+      ▼               ▼                ▼
+ Business Rules  Specifications   Repositories
+                      │
+                      ▼
+                 PostgreSQL
+```
 
-                Client
-                   │
-                   ▼
-        Spring Boot REST API
-        ┌──────────────────┐
-        │ Authentication   │
-        │ Validation       │
-        │ Business Rules   │
-        │ Specifications   │
-        │ Persistence      │
-        └──────────────────┘
-                   │
-                   ▼
-             PostgreSQL
+---
 
+# Domain Model
 
+```
+Parking
+   │
+   ├── ParkingSector
+   │       │
+   │       └── ParkingSpot
+   │
+Vehicle
+   │
+   └── ParkingSession
+           │
+           └── ParkingSpot
 ```
 
 ---
@@ -80,35 +99,52 @@ authentication, dynamic filtering, and business rules while serving as a product
 
 ## Parking
 
-- Parking CRUD
-- Pagination
-- Dynamic Filtering
+- Single Parking Management
+- Parking Configuration
+- Capacity Management
+
+## Parking Sectors
+
+- Sector Management
+- Multiple Floor Support
+- Sector Types
+- Activation / Deactivation
 
 ## Parking Spots
 
 - Parking Spot Management
 - Availability Control
-- Occupancy Statistics
+- Occupancy Metrics
+- Dynamic Filtering
+
+## Vehicles
+
+- Vehicle Registry
+- Vehicle Types
+- Brazilian License Plate Validation
+- Activation / Deactivation
 
 ## Parking Sessions
 
-- Open / Close Sessions
+- Vehicle Check-in
+- Vehicle Check-out
+- Session Lifecycle
 - Duplicate Session Prevention
-- Brazilian License Plate Validation
-- Entry Time Filtering
-- Parking Spot Filtering
+- Parking Spot Allocation
+- Dynamic Filtering
 
 ---
 
 # Project Structure
 
 ```
-
 src
+├── config
 ├── controller
 ├── dto
-│ ├── request
-│ └── response
+│   ├── filter
+│   ├── request
+│   └── response
 ├── entity
 ├── enums
 ├── exception
@@ -116,24 +152,32 @@ src
 ├── security
 ├── service
 ├── specification
-└── config
+└── util
 
+docs
+├── Product Vision
+├── Functional Requirements
+├── Business Rules
+├── Domain Model
+├── Data Model
+├── REST API Specification
+├── Application Architecture
+└── Technologies & Infrastructure
 ```
 
 ---
 
 # Testing
 
-The project includes unit tests covering the service layer.
+The project includes comprehensive unit tests covering the business layer.
 
-Covered components:
+Covered services:
 
 - ParkingService
+- ParkingSectorService
 - ParkingSpotService
 - ParkingSessionService
-- UserService
-- AuthService
-- JwtService
+- VehicleService
 
 Frameworks:
 
@@ -144,31 +188,35 @@ Frameworks:
 
 # Roadmap
 
-## Completed Milestones
+## Completed
 
-- Parking CRUD
-- Parking Spot Management
+- Domain Modeling
+- REST API
 - Authentication
-- JWT
+- Administrative Module
 - Dynamic Filtering
 - Specifications
-- Pagination
+- Business Rule Validation
 - Unit Tests
 
 ## In Progress
 
-- Redis Integration
-- Observability
+- Simulation Engine
 
 ## Planned
 
+- Vehicle Generator
+- Parking Simulation
+- Real-Time Scheduler
+- Dashboard
+- Redis
 - Docker
 - RabbitMQ
 - Kafka
-- CI/CD
-- Kubernetes
+- Observability
 - Prometheus
 - Grafana
+- CI/CD
 
 ---
 
@@ -186,7 +234,7 @@ Run the application
 ./gradlew bootRun
 ```
 
-Run tests
+Run unit tests
 
 ```bash
 ./gradlew test
@@ -194,11 +242,31 @@ Run tests
 
 ---
 
+# Documentation
+
+The project is fully documented before implementation.
+
+Available documentation includes:
+
+- Product Vision
+- Functional Requirements
+- Business Rules
+- Domain Model
+- Data Model
+- REST API Specification
+- Application Architecture
+- Technologies & Infrastructure
+
+---
+
 # Future Vision
 
-Lindvior is designed to evolve beyond a simple CRUD application into a production-oriented Smart Parking Platform
-featuring event-driven architecture, distributed systems, observability, caching, messaging, and cloud-native deployment
-strategies.
+Lindvior is evolving into a fully autonomous parking simulation platform capable of reproducing realistic parking
+behavior through configurable business rules, scheduled events, vehicle generation, occupancy metrics, and operational
+monitoring.
+
+The long-term goal is to demonstrate modern backend architecture using distributed systems, messaging, caching,
+observability, and cloud-native deployment practices.
 
 ---
 
