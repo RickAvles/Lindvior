@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,7 +18,8 @@ import java.util.UUID;
 public class Parking {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue
+    @UuidGenerator
     private UUID id;
 
     @Column(nullable = false)
@@ -27,8 +29,15 @@ public class Parking {
     private String address;
 
     @Column(nullable = false)
+    private Integer capacity;
+
+    @Column(nullable = false)
+    private boolean active = true;
+
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "parking")
-    private List<ParkingSpot> parkingSpots;
+    private List<ParkingSector> parkingSectors;
+
 }

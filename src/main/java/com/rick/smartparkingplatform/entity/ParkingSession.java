@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -17,16 +18,14 @@ import java.util.UUID;
 public class ParkingSession {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue
+    @UuidGenerator
     private UUID id;
-
-    @Column(nullable = false)
-    private String licensePlate;
 
     @Column(nullable = false)
     private LocalDateTime entryTime;
 
-    @Column(nullable = true)
+    @Column
     private LocalDateTime exitTime;
 
     @Enumerated(EnumType.STRING)
@@ -37,10 +36,12 @@ public class ParkingSession {
     private LocalDateTime createdAt;
 
     @ManyToOne
-    @JoinColumn(name = "parking_spot_id")
+    @JoinColumn(name = "parking_spot_id", nullable = false)
     private ParkingSpot parkingSpot;
 
-    @ManyToOne()
-    @JoinColumn(name = "vehicle_profile_id")
-    private VehicleProfile vehicleProfile;
+    @ManyToOne
+    @JoinColumn(name = "vehicle_id", nullable = false)
+    private Vehicle vehicle;
+
 }
+
