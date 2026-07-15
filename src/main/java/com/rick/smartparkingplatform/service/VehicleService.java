@@ -3,11 +3,14 @@ package com.rick.smartparkingplatform.service;
 import com.rick.smartparkingplatform.dto.request.VehicleRequest;
 import com.rick.smartparkingplatform.dto.response.VehicleResponse;
 import com.rick.smartparkingplatform.entity.Vehicle;
+import com.rick.smartparkingplatform.enums.VehicleType;
 import com.rick.smartparkingplatform.exception.VehicleAlreadyExistsException;
 import com.rick.smartparkingplatform.exception.VehicleNotFoundException;
 import com.rick.smartparkingplatform.repository.VehicleRepository;
+import com.rick.smartparkingplatform.simulation.enums.StayProfile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -113,7 +116,6 @@ public class VehicleService {
         vehicle.setColor(request.color());
 
 
-
         Vehicle updatedVehicle = vehicleRepository.save(vehicle);
 
         return entityToResponse(updatedVehicle);
@@ -132,5 +134,67 @@ public class VehicleService {
 
         return entityToResponse(updatedVehicle);
     }
+
+    /**
+     * Busca um veículo pela placa.
+     */
+    public Vehicle findByLicensePlate(String licensePlate) {
+
+        return vehicleRepository.findByLicensePlate(licensePlate)
+                .orElseThrow(VehicleNotFoundException::new);
+
+    }
+
+    /**
+     * Retorna a quantidade de veículos cadastrados.
+     */
+    public long count() {
+
+        return vehicleRepository.count();
+
+    }
+
+    /**
+     * Retorna o veículo localizado na posição informada.
+     */
+    public Vehicle getVehicleAtPosition(int position) {
+
+        Pageable pageable = PageRequest.of(position, 1);
+
+        return vehicleRepository.findAll(pageable)
+                .getContent()
+                .getFirst();
+    }
+
+    /**
+     * Cadastra um novo veículo gerado pela simulação.
+     */
+    public Vehicle createGeneratedVehicle(
+            String licensePlate,
+            VehicleType type,
+            String color,
+            StayProfile stayProfile) {
+
+        Vehicle vehicle = new Vehicle();
+
+        vehicle.setLicensePlate(licensePlate);
+        vehicle.setType(type);
+        vehicle.setColor(color);
+        vehicle.setStayProfile(stayProfile);
+        vehicle.setActive(true);
+        vehicle.setCreatedAt(LocalDateTime.now());
+
+        return vehicleRepository.save(vehicle);
+    }
+
+    /**
+     * Verifica se já existe um veículo cadastrado com a placa informada.
+     */
+    public boolean existsByLicensePlate(String licensePlate) {
+
+        return vehicleRepository.existsByLicensePlate(licensePlate);
+
+    }
+
 
 }

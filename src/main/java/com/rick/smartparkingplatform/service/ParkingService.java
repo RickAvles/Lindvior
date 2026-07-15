@@ -3,6 +3,7 @@ package com.rick.smartparkingplatform.service;
 import com.rick.smartparkingplatform.dto.request.ParkingRequest;
 import com.rick.smartparkingplatform.dto.response.ParkingResponse;
 import com.rick.smartparkingplatform.entity.Parking;
+import com.rick.smartparkingplatform.exception.InvalidParkingOperatingHoursException;
 import com.rick.smartparkingplatform.exception.ParkingNotFoundException;
 import com.rick.smartparkingplatform.exception.ResourceNotFoundException;
 import com.rick.smartparkingplatform.repository.ParkingRepository;
@@ -28,8 +29,21 @@ public class ParkingService {
                 parking.getAddress(),
                 parking.getCapacity(),
                 parking.isActive(),
-                parking.getCreatedAt()
+                parking.getCreatedAt(),
+                parking.getOpeningTime(),
+                parking.getClosingTime()
         );
+    }
+
+    /**
+     * Validação para o horario de abertura não ser maior que a de fechamento.
+     */
+    private void validateOperatingHours(ParkingRequest request) {
+
+        if (!request.openingTime().isBefore(request.closingTime())) {
+            throw new InvalidParkingOperatingHoursException();
+        }
+
     }
 
     /**
@@ -45,6 +59,17 @@ public class ParkingService {
     }
 
     /**
+     * Retorna a entidade estacionamento cadastrado.
+     */
+    public Parking getCurrentParking() {
+
+        return parkingRepository
+                .findFirstByOrderByCreatedAtAsc()
+                .orElseThrow(ParkingNotFoundException::new);
+
+    }
+
+    /**
      * Atualiza os dados do estacionamento.
      */
     public ParkingResponse update(UUID id, ParkingRequest request) {
@@ -53,14 +78,26 @@ public class ParkingService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Parking with id " + id + " not found."));
 
+        validateOperatingHours(request);
+
         parking.setName(request.name());
         parking.setAddress(request.address());
         parking.setCapacity(request.capacity());
         parking.setActive(request.active());
+        parking.setOpeningTime(request.openingTime());
+        parking.setClosingTime(request.closingTime());
 
         Parking updatedParking = parkingRepository.save(parking);
 
         return entityToResponse(updatedParking);
+    }
+
+    /**
+     * Verifica se o estacionamento já foi inicializado.
+     */
+    public boolean exists() {
+
+        return parkingRepository.existsBy();
     }
 
 }

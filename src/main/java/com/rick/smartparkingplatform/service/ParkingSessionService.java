@@ -20,6 +20,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -144,7 +145,7 @@ public class ParkingSessionService {
         if (!parkingSpotRepository.existsByActiveTrue()) {
             throw new ParkingCurrentlyUnavailableException();
         }
-        
+
         ParkingSpot parkingSpot = parkingSpotRepository
                 .findFirstByStatusAndActiveTrue(StatusParkingSpot.FREE)
                 .orElseThrow(NoParkingSpotsAvailableException::new);
@@ -187,6 +188,14 @@ public class ParkingSessionService {
     }
 
     /**
+     * Busca uma entidade de sessão pelo identificador.
+     */
+    public ParkingSession getEntity(UUID id) {
+
+        return findParkingSessionById(id);
+    }
+
+    /**
      * Busca uma sessão pelo identificador.
      */
     public ParkingSessionResponse getById(UUID id) {
@@ -195,5 +204,63 @@ public class ParkingSessionService {
 
         return toResponse(parkingSession);
     }
+
+    /**
+     * Valida se a sessão está aberta.
+     */
+    public void validateOpenSession(ParkingSession parkingSession) {
+
+        if (parkingSession.getStatus() != StatusParkingSession.ACTIVE) {
+            throw new ParkingAlreadyClosedException();
+        }
+
+    }
+
+    /**
+     * Valida se o veículo já possui uma sessão de estacionamento ativa.
+     */
+    public void validateNoOpenSession(Vehicle vehicle) {
+
+        if (parkingSessionRepository.existsByVehicleAndStatus(
+                vehicle,
+                StatusParkingSession.ACTIVE)) {
+
+            throw new OpenParkingSessionAlreadyExistsException();
+        }
+
+    }
+
+    /**
+     * Cria e persiste uma nova sessão de estacionamento.
+     */
+    public ParkingSession createSession(Vehicle vehicle, ParkingSpot parkingSpot) {
+
+        ParkingSession session = toEntity(vehicle, parkingSpot);
+
+        return parkingSessionRepository.save(session);
+
+    }
+
+    /**
+     * Finaliza uma sessão de estacionamento.
+     */
+    public void closeSession(ParkingSession parkingSession) {
+
+        parkingSession.setExitTime(LocalDateTime.now());
+        parkingSession.setStatus(StatusParkingSession.FINISHED);
+
+        parkingSessionRepository.save(parkingSession);
+    }
+
+    /**
+     * Retorna todas as sessões de estacionamento ativas.
+     */
+    public List<ParkingSession> getActiveSessions() {
+
+        return parkingSessionRepository.findAllByStatus(
+                StatusParkingSession.ACTIVE
+        );
+    }
+
 
 }

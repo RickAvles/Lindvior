@@ -7,6 +7,7 @@ import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,6 +31,12 @@ public class Parking {
 
     @Column(nullable = false)
     private Integer capacity;
+
+    @Column(nullable = false)
+    private LocalTime openingTime;
+
+    @Column(nullable = false)
+    private LocalTime closingTime;
 
     @Column(nullable = false)
     private boolean active = true;

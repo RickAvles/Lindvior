@@ -7,6 +7,7 @@ import com.rick.smartparkingplatform.dto.response.ParkingSpotResponse;
 import com.rick.smartparkingplatform.entity.ParkingSector;
 import com.rick.smartparkingplatform.entity.ParkingSpot;
 import com.rick.smartparkingplatform.enums.StatusParkingSpot;
+import com.rick.smartparkingplatform.exception.NoParkingSpotsAvailableException;
 import com.rick.smartparkingplatform.exception.ParkingSpotAlreadyExistsException;
 import com.rick.smartparkingplatform.exception.ResourceNotFoundException;
 import com.rick.smartparkingplatform.repository.ParkingSectorRepository;
@@ -21,7 +22,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -187,4 +187,35 @@ public class ParkingSpotService {
                 occupancyRate
         );
     }
+
+    /**
+     * Retorna a primeira vaga livre e ativa disponível.
+     */
+    public ParkingSpot findAvailableSpot() {
+
+        return parkingSpotRepository
+                .findFirstByStatusAndActiveTrue(StatusParkingSpot.FREE)
+                .orElseThrow(NoParkingSpotsAvailableException::new);
+    }
+
+    /**
+     * Marca uma vaga como ocupada.
+     */
+    public void occupy(ParkingSpot parkingSpot) {
+
+        parkingSpot.setStatus(StatusParkingSpot.OCCUPIED);
+
+        parkingSpotRepository.save(parkingSpot);
+    }
+
+    /**
+     * Libera uma vaga ocupada.
+     */
+    public void release(ParkingSpot parkingSpot) {
+
+        parkingSpot.setStatus(StatusParkingSpot.FREE);
+
+        parkingSpotRepository.save(parkingSpot);
+    }
+
 }
