@@ -1,4 +1,4 @@
-package com.rick.smartparkingplatform.service;
+package com.rick.smartparkingplatform.services;
 
 import com.rick.smartparkingplatform.entity.User;
 import com.rick.smartparkingplatform.security.service.JwtService;

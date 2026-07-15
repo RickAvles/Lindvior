@@ -1,6 +1,7 @@
 package com.rick.smartparkingplatform.entity;
 
 import com.rick.smartparkingplatform.enums.VehicleType;
+import com.rick.smartparkingplatform.simulation.enums.StayProfile;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -37,6 +38,10 @@ public class Vehicle {
 
     @Column(nullable = false)
     private String color;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StayProfile stayProfile;
 
     @Column(nullable = false)
     private boolean active = true;

@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://SEU_SERVIDOR:5432/smartparking
+    username: usuario
+    password: senha
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+    show-sql: false
+
+    application:
+      environment: production
