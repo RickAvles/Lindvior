@@ -26,7 +26,7 @@ public class SecurityConfig {
     private final CustomAccessDeniedHandler accessDenied;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
 
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -49,6 +49,14 @@ public class SecurityConfig {
                                 "/api/v1/info"
                         )
                         .permitAll()
+
+                        //Dashboard
+
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/dashboard"
+                        )
+                        .hasAnyRole("ADMIN", "USER")
 
                         //User
 
@@ -128,7 +136,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) {
         return configuration.getAuthenticationManager();
     }
 

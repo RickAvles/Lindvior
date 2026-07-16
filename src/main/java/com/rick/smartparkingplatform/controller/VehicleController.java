@@ -1,14 +1,11 @@
 package com.rick.smartparkingplatform.controller;
 
-import com.rick.smartparkingplatform.dto.request.VehicleRequest;
 import com.rick.smartparkingplatform.dto.response.VehicleResponse;
 import com.rick.smartparkingplatform.service.VehicleService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -19,14 +16,6 @@ import java.util.UUID;
 public class VehicleController {
 
     private final VehicleService vehicleService;
-
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public VehicleResponse create(
-            @Valid @RequestBody VehicleRequest request) {
-
-        return vehicleService.create(request);
-    }
 
     @GetMapping
     public Page<VehicleResponse> findAll(
@@ -42,20 +31,6 @@ public class VehicleController {
     public VehicleResponse getById(@PathVariable UUID id) {
 
         return vehicleService.getById(id);
-    }
-
-    @PutMapping("/{id}")
-    public VehicleResponse update(
-            @PathVariable UUID id,
-            @Valid @RequestBody VehicleRequest request) {
-
-        return vehicleService.update(id, request);
-    }
-
-    @PatchMapping("/{id}/deactivate")
-    public VehicleResponse deactivate(@PathVariable UUID id) {
-
-        return vehicleService.deactivate(id);
     }
 
 }

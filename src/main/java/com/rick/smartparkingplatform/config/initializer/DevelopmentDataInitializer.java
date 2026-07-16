@@ -3,15 +3,19 @@ package com.rick.smartparkingplatform.config.initializer;
 import com.rick.smartparkingplatform.entity.Parking;
 import com.rick.smartparkingplatform.entity.ParkingSector;
 import com.rick.smartparkingplatform.entity.ParkingSpot;
+import com.rick.smartparkingplatform.entity.User;
+import com.rick.smartparkingplatform.enums.Role;
 import com.rick.smartparkingplatform.enums.SectorType;
 import com.rick.smartparkingplatform.enums.StatusParkingSpot;
 import com.rick.smartparkingplatform.repository.ParkingRepository;
 import com.rick.smartparkingplatform.repository.ParkingSectorRepository;
 import com.rick.smartparkingplatform.repository.ParkingSpotRepository;
+import com.rick.smartparkingplatform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -27,6 +31,8 @@ public class DevelopmentDataInitializer implements CommandLineRunner {
     private final ParkingRepository parkingRepository;
     private final ParkingSectorRepository parkingSectorRepository;
     private final ParkingSpotRepository parkingSpotRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     private static final int REGULAR_SPOTS = 200;
     private static final int MOTORCYCLE_SPOTS = 50;
@@ -128,11 +134,35 @@ public class DevelopmentDataInitializer implements CommandLineRunner {
         );
     }
 
+    /**
+     * Cria o usuário administrador padrão para o ambiente de desenvolvimento.
+     */
+    private void createAdminUser() {
+
+        if (userRepository.count() > 0) {
+            return;
+        }
+
+        User admin = new User();
+        LocalDateTime now = LocalDateTime.now();
+
+        admin.setEmail("admin@lindvior.com");
+        admin.setPassword(passwordEncoder.encode("admin123"));
+        admin.setRole(Role.ADMIN);
+        admin.setActive(true);
+        admin.setCreatedAt(now);
+        admin.setUpdatedAt(now);
+
+        userRepository.save(admin);
+    }
+
     @Override
     public void run(String @NonNull ... args) {
         if (parkingRepository.existsBy()) {
             return;
         }
+
+        createAdminUser();
 
         Parking parking = createParking();
 

@@ -196,5 +196,18 @@ public class VehicleService {
 
     }
 
+    /**
+     * Retorna um veículo pela placa.
+     *
+     * @param licensePlate placa do veículo.
+     * @return veículo encontrado.
+     * @throws VehicleNotFoundException caso não exista.
+     */
+    public Vehicle getByLicensePlate(String licensePlate) {
+
+        return vehicleRepository
+                .findByLicensePlate(licensePlate)
+                .orElseThrow(VehicleNotFoundException::new);
+    }
 
 }

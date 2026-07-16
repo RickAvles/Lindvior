@@ -1,13 +1,22 @@
 package com.rick.smartparkingplatform.simulation.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum StayProfile {
 
-    SHORT,
+    SHORT(StayCurve.SHORT),
 
-    NORMAL,
+    NORMAL(StayCurve.NORMAL),
 
-    LONG,
+    LONG(StayCurve.LONG),
 
-    VERY_LONG
+    VERY_LONG(StayCurve.VERY_LONG);
+
+    private final StayCurve stayCurve;
+
+    StayProfile(StayCurve stayCurve) {
+        this.stayCurve = stayCurve;
+    }
 
 }

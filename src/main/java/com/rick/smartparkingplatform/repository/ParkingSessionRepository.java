@@ -16,5 +16,11 @@ public interface ParkingSessionRepository extends JpaRepository<ParkingSession, 
     boolean existsByVehicleAndStatus(Vehicle vehicle, StatusParkingSession status);
 
     List<ParkingSession> findAllByStatus(StatusParkingSession status);
+    
+    /**
+     * Verifica se o veículo possui
+     * uma sessão aberta.
+     */
+    boolean existsByVehicleIdAndStatus(UUID vehicleId, StatusParkingSession status);
 
 }

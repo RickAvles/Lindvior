@@ -11,7 +11,6 @@ import com.rick.smartparkingplatform.enums.StatusParkingSpot;
 import com.rick.smartparkingplatform.exception.*;
 import com.rick.smartparkingplatform.repository.ParkingSessionRepository;
 import com.rick.smartparkingplatform.repository.ParkingSpotRepository;
-import com.rick.smartparkingplatform.repository.VehicleRepository;
 import com.rick.smartparkingplatform.specification.ParkingSessionSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -29,7 +28,7 @@ public class ParkingSessionService {
 
     private final ParkingSessionRepository parkingSessionRepository;
     private final ParkingSpotRepository parkingSpotRepository;
-    private final VehicleRepository vehicleRepository;
+    private final VehicleService vehicleService;
 
     /**
      * Converte os dados necessários para uma entidade ParkingSession.
@@ -133,7 +132,7 @@ public class ParkingSessionService {
      */
     public ParkingSessionResponse create(ParkingSessionRequest request) {
 
-        Vehicle vehicle = vehicleRepository.findByLicensePlate(request.licensePlate()).orElseThrow(VehicleNotFoundException::new);
+        Vehicle vehicle = vehicleService.getByLicensePlate(request.licensePlate());
 
         if (parkingSessionRepository.existsByVehicleAndStatus(
                 vehicle,
@@ -233,12 +232,11 @@ public class ParkingSessionService {
     /**
      * Cria e persiste uma nova sessão de estacionamento.
      */
-    public ParkingSession createSession(Vehicle vehicle, ParkingSpot parkingSpot) {
+    public void createSession(Vehicle vehicle, ParkingSpot parkingSpot) {
 
         ParkingSession session = toEntity(vehicle, parkingSpot);
 
-        return parkingSessionRepository.save(session);
-
+        parkingSessionRepository.save(session);
     }
 
     /**
@@ -260,6 +258,22 @@ public class ParkingSessionService {
         return parkingSessionRepository.findAllByStatus(
                 StatusParkingSession.ACTIVE
         );
+    }
+
+    /**
+     * Verifica se o veículo possui
+     * uma sessão aberta.
+     *
+     * @param vehicleId identificador do veículo.
+     * @return true caso exista uma sessão aberta.
+     */
+    public boolean hasOpenSession(UUID vehicleId) {
+
+        return parkingSessionRepository
+                .existsByVehicleIdAndStatus(
+                        vehicleId,
+                        StatusParkingSession.ACTIVE
+                );
     }
 
 
