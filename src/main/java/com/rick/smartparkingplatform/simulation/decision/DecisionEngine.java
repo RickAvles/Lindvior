@@ -1,24 +1,21 @@
 package com.rick.smartparkingplatform.simulation.decision;
 
-import com.rick.smartparkingplatform.dto.response.OccupancyResponse;
 import com.rick.smartparkingplatform.entity.ParkingSession;
 import com.rick.smartparkingplatform.entity.Vehicle;
 import com.rick.smartparkingplatform.service.ParkingEntryService;
 import com.rick.smartparkingplatform.service.ParkingExitService;
 import com.rick.smartparkingplatform.service.ParkingSessionService;
-import com.rick.smartparkingplatform.service.ParkingSpotService;
 import com.rick.smartparkingplatform.simulation.clock.SimulationClock;
 import com.rick.smartparkingplatform.simulation.generator.ParkingStayGenerator;
 import com.rick.smartparkingplatform.simulation.generator.VehicleGenerator;
+import com.rick.smartparkingplatform.simulation.log.SimulationLogger;
+import com.rick.smartparkingplatform.simulation.service.ParkingEntryManager;
 import com.rick.smartparkingplatform.simulation.service.ParkingStayManager;
-import com.rick.smartparkingplatform.simulation.service.TrafficProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -26,114 +23,77 @@ public class DecisionEngine {
 
     private final ParkingEntryService parkingEntryService;
     private final ParkingExitService parkingExitService;
+    private final ParkingEntryManager parkingEntryManager;
     private final VehicleGenerator vehicleGenerator;
-    private final TrafficProfileService trafficProfileService;
-    private final ParkingSpotService parkingSpotService;
-    private final ParkingStayGenerator parkingStayGenerator;
     private final ParkingStayManager parkingStayManager;
     private final ParkingSessionService parkingSessionService;
     private final SimulationClock simulationClock;
-
-    private final Random random = new Random();
+    private final SimulationLogger simulationLogger;
+    private final ParkingStayGenerator parkingStayGenerator;
 
     /**
-     * Processa um ciclo da simulação durante o horário de funcionamento.
+     * Processa um ciclo da simulação durante
+     * o horário de funcionamento.
      */
     public void processOpenTick() {
 
-        processScheduledExits();
+        processExitDecisions();
 
-        if (shouldGenerateEntry()) {
-
-            Vehicle vehicle = vehicleGenerator.generateVehicle();
-
-            ParkingSession parkingSession =
-                    parkingEntryService.processEntry(
-                            vehicle.getLicensePlate()
-                    );
-
-            Duration stayDuration =
-                    parkingStayGenerator.generateStayDuration(
-                            vehicle.getStayProfile()
-                    );
-
-            parkingStayManager.scheduleExit(
-                    parkingSession,
-                    stayDuration
-            );
-        }
-    }
-
-
-    /**
-     * Determina se um novo veículo deverá entrar
-     * no estacionamento neste ciclo.
-     */
-    private boolean shouldGenerateEntry() {
-
-        double baseProbability = trafficProfileService.getEntryProbability();
-
-        OccupancyResponse occupancy = parkingSpotService.getOccupancy();
-
-        if (occupancy.availableSpots() == 0) {
-            return false;
+        if (!parkingEntryManager.shouldGenerateEntry()) {
+            return;
         }
 
-        double finalProbability =
-                baseProbability * calculateOccupancyFactor(occupancy);
+        Vehicle vehicle = vehicleGenerator.generateVehicle();
 
-        return random.nextDouble() < finalProbability;
+        parkingEntryService.processEntry(
+                vehicle.getLicensePlate()
+        );
     }
 
     /**
-     * Calcula o fator de redução da probabilidade
-     * de entrada conforme a ocupação do estacionamento.
+     * Avalia as sessões abertas e processa
+     * as saídas do ciclo atual.
      */
-    private double calculateOccupancyFactor(
-            OccupancyResponse occupancy) {
+    private void processExitDecisions() {
 
-        return 1 - (occupancy.occupancyRate().doubleValue() / 100.0);
-    }
-
-    /**
-     * Processa as saídas previstas para o ciclo atual da simulação.
-     */
-    private void processScheduledExits() {
-
-        LocalDateTime currentTime = simulationClock.getCurrentTime();
+        LocalDateTime currentTime =
+                simulationClock.getCurrentTime();
 
         List<ParkingSession> activeSessions =
                 parkingSessionService.getActiveSessions();
 
         for (ParkingSession parkingSession : activeSessions) {
 
-            boolean shouldExit =
-                    parkingStayManager.shouldExit(
-                            parkingSession,
-                            currentTime
-                    );
-
-            if (!shouldExit) {
+            if (!parkingStayManager.shouldExit(
+                    parkingSession,
+                    currentTime)) {
                 continue;
             }
 
-            parkingExitService.processExit(
-                    parkingSession.getId()
+            double probability = parkingStayGenerator.calculateExitProbability(parkingSession, currentTime);
+
+            simulationLogger.exit(
+
+                    parkingSession
+                            .getVehicle()
+                            .getLicensePlate(),
+
+                    probability
             );
 
-            parkingStayManager.removeSchedule(
-                    parkingSession
+            parkingExitService.processExit(
+                    parkingSession.getId()
             );
         }
     }
 
     /**
-     * Processa um ciclo da simulação fora do horário de funcionamento.
+     * Processa um ciclo da simulação durante
+     * o período de fechamento.
      */
     public void processClosedTick() {
 
-        processScheduledExits();
+        processExitDecisions();
     }
-
 
 }

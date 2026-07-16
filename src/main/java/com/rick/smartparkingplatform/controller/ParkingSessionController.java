@@ -22,18 +22,7 @@ import java.util.UUID;
 public class ParkingSessionController {
 
     private final ParkingSessionService parkingSessionService;
-
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ParkingSessionResponse create(@RequestBody @Valid ParkingSessionRequest request) {
-        return parkingSessionService.create(request);
-    }
-
-    @PutMapping("/{id}/close")
-    public ParkingSessionResponse close(@PathVariable UUID id) {
-        return parkingSessionService.close(id);
-    }
-
+    
     @GetMapping
     public Page<ParkingSessionResponse> get(@PageableDefault(page = 0, size = 20) Pageable pageable,
                                             @RequestParam(required = false) String licensePlate,

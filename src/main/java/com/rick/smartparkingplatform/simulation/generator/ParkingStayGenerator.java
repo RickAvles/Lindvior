@@ -1,84 +1,102 @@
 package com.rick.smartparkingplatform.simulation.generator;
 
-import com.rick.smartparkingplatform.simulation.enums.StayProfile;
+import com.rick.smartparkingplatform.entity.ParkingSession;
+import com.rick.smartparkingplatform.simulation.enums.StayCurve;
+import com.rick.smartparkingplatform.simulation.log.SimulationLogger;
+import com.rick.smartparkingplatform.simulation.service.RecoveryService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.util.Random;
+import java.time.LocalDateTime;
 
 @Service
+@RequiredArgsConstructor
 public class ParkingStayGenerator {
 
-    private final Random random = new Random();
+    private final RecoveryService recoveryService;
+    private final SimulationLogger simulationLogger;
 
     /**
-     * Gera a duração prevista de permanência de um veículo.
+     * Calcula a probabilidade de saída
+     * da sessão no ciclo atual.
      */
-    public Duration generateStayDuration(
-            StayProfile stayProfile) {
+    public double calculateExitProbability(
+            ParkingSession parkingSession,
+            LocalDateTime currentTime) {
 
-        return switch (stayProfile) {
+        if (recoveryService.shouldUseRecoveryCurve(
+                parkingSession,
+                currentTime)) {
 
-            case SHORT -> generateShortStay();
+            long recoveryElapsedSeconds =
+                    recoveryService.getRecoveryElapsedSeconds(
+                            currentTime
+                    );
 
-            case NORMAL -> generateNormalStay();
+            double probability =
+                    StayCurve.RECOVERY.getProbability(
+                            recoveryElapsedSeconds
+                    );
 
-            case LONG -> generateLongStay();
+            if (recoveryService.shouldLogRecovery(
+                    recoveryElapsedSeconds)) {
 
-            case VERY_LONG -> generateVeryLongStay();
-        };
-    }
+                simulationLogger.recovery(
+                        parkingSession
+                                .getVehicle()
+                                .getLicensePlate(),
+                        recoveryElapsedSeconds,
+                        probability
+                );
+            }
 
-    /**
-     * Gera uma permanência curta.
-     */
-    private Duration generateShortStay() {
+            return probability;
+        }
 
-        return Duration.ofMinutes(
-                randomBetween(30, 90)
+        long elapsedMinutes =
+                calculateElapsedMinutes(
+                        parkingSession,
+                        currentTime
+                );
+
+        StayCurve stayCurve =
+                parkingSession
+                        .getVehicle()
+                        .getStayProfile()
+                        .getStayCurve();
+
+        double probability =
+                stayCurve.getProbability(
+                        elapsedMinutes
+                );
+
+        simulationLogger.decision(
+                parkingSession
+                        .getVehicle()
+                        .getLicensePlate(),
+                stayCurve,
+                elapsedMinutes,
+                probability
         );
+
+        return probability;
     }
 
     /**
-     * Gera uma permanência média.
+     * Calcula o tempo de permanência
+     * da sessão em minutos.
      */
-    private Duration generateNormalStay() {
+    private long calculateElapsedMinutes(
+            ParkingSession parkingSession,
+            LocalDateTime currentTime) {
 
-        return Duration.ofMinutes(
-                randomBetween(90, 240)
-        );
-    }
-
-    /**
-     * Gera uma permanência longa.
-     */
-    private Duration generateLongStay() {
-
-        return Duration.ofMinutes(
-                randomBetween(240, 480)
-        );
-    }
-
-    /**
-     * Gera uma permanência muito longa.
-     */
-    private Duration generateVeryLongStay() {
-
-        return Duration.ofMinutes(
-                randomBetween(480, 720)
-        );
-    }
-
-    /**
-     * Retorna um valor aleatório entre dois limites.
-     */
-    private int randomBetween(
-            int min,
-            int max) {
-
-        return random.nextInt(
-                max - min + 1
-        ) + min;
+        return Duration
+                .between(
+                        parkingSession.getEntryTime(),
+                        currentTime
+                )
+                .toMinutes();
     }
 
 }

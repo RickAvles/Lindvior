@@ -1,59 +1,39 @@
 package com.rick.smartparkingplatform.simulation.service;
 
 import com.rick.smartparkingplatform.entity.ParkingSession;
+import com.rick.smartparkingplatform.simulation.generator.ParkingStayGenerator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
+@RequiredArgsConstructor
 public class ParkingStayManager {
 
-    private final Map<UUID, LocalDateTime> scheduledExits = new ConcurrentHashMap<>();
+    private final ParkingStayGenerator parkingStayGenerator;
+    private final Random random = new Random();
 
     /**
-     * Agenda o horário previsto de saída de uma sessão.
-     */
-    public void scheduleExit(
-            ParkingSession parkingSession,
-            Duration stayDuration) {
-
-        LocalDateTime scheduledExit =
-                parkingSession.getEntryTime().plus(stayDuration);
-
-        scheduledExits.put(
-                parkingSession.getId(),
-                scheduledExit
-        );
-    }
-
-    /**
-     * Verifica se uma sessão atingiu o horário previsto de saída.
+     * Avalia probabilisticamente se a sessão
+     * deverá ser encerrada neste ciclo.
      */
     public boolean shouldExit(
             ParkingSession parkingSession,
             LocalDateTime currentTime) {
 
-        LocalDateTime scheduledExit =
-                scheduledExits.get(parkingSession.getId());
+        double probability =
+                parkingStayGenerator.calculateExitProbability(
+                        parkingSession,
+                        currentTime
+                );
 
-        if (scheduledExit == null) {
-            return false;
-        }
-
-        return !currentTime.isBefore(scheduledExit);
+        return random.nextDouble() <= probability;
     }
-
-    /**
-     * Remove o agendamento de saída de uma sessão.
-     */
-    public void removeSchedule(ParkingSession parkingSession) {
-
-        scheduledExits.remove(parkingSession.getId());
-    }
-
 
 }

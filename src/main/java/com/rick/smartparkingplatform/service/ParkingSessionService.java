@@ -29,7 +29,7 @@ public class ParkingSessionService {
 
     private final ParkingSessionRepository parkingSessionRepository;
     private final ParkingSpotRepository parkingSpotRepository;
-    private final VehicleRepository vehicleRepository;
+    private final VehicleService vehicleService;
 
     /**
      * Converte os dados necessários para uma entidade ParkingSession.
@@ -133,7 +133,7 @@ public class ParkingSessionService {
      */
     public ParkingSessionResponse create(ParkingSessionRequest request) {
 
-        Vehicle vehicle = vehicleRepository.findByLicensePlate(request.licensePlate()).orElseThrow(VehicleNotFoundException::new);
+        Vehicle vehicle = vehicleService.getByLicensePlate(request.licensePlate());
 
         if (parkingSessionRepository.existsByVehicleAndStatus(
                 vehicle,
@@ -262,5 +262,21 @@ public class ParkingSessionService {
         );
     }
 
+    /**
+     * Verifica se o veículo possui
+     * uma sessão aberta.
+     *
+     * @param vehicleId identificador do veículo.
+     * @return true caso exista uma sessão aberta.
+     */
+    public boolean hasOpenSession(UUID vehicleId) {
+
+        return parkingSessionRepository
+                .existsByVehicleIdAndStatus(
+                        vehicleId,
+                        StatusParkingSession.ACTIVE
+                );
+    }
+    
 
 }

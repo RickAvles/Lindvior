@@ -20,14 +20,6 @@ public class VehicleController {
 
     private final VehicleService vehicleService;
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public VehicleResponse create(
-            @Valid @RequestBody VehicleRequest request) {
-
-        return vehicleService.create(request);
-    }
-
     @GetMapping
     public Page<VehicleResponse> findAll(
             @RequestParam(defaultValue = "0") Integer page,
@@ -42,20 +34,6 @@ public class VehicleController {
     public VehicleResponse getById(@PathVariable UUID id) {
 
         return vehicleService.getById(id);
-    }
-
-    @PutMapping("/{id}")
-    public VehicleResponse update(
-            @PathVariable UUID id,
-            @Valid @RequestBody VehicleRequest request) {
-
-        return vehicleService.update(id, request);
-    }
-
-    @PatchMapping("/{id}/deactivate")
-    public VehicleResponse deactivate(@PathVariable UUID id) {
-
-        return vehicleService.deactivate(id);
     }
 
 }

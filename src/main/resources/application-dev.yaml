@@ -16,7 +16,8 @@ spring:
 
 logging:
   level:
-    org.hibernate.SQL: DEBUG
-    
+    org.hibernate.SQL: ERROR
+
 application:
   environment: development
+

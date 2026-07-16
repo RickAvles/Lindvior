@@ -50,6 +50,14 @@ public class SecurityConfig {
                         )
                         .permitAll()
 
+                        //Dashboard
+
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/dashboard"
+                        )
+                        .hasAnyRole("ADMIN", "USER")
+
                         //User
 
                         .requestMatchers(

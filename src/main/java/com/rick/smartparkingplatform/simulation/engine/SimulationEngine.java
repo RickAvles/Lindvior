@@ -30,8 +30,7 @@ public class SimulationEngine {
 
         LocalDateTime currentTime = simulationClock.getCurrentTime();
 
-        SimulationState state =
-                operatingHoursService.getCurrentState(currentTime);
+        SimulationState state = operatingHoursService.getCurrentState(currentTime);
 
         switch (state) {
 

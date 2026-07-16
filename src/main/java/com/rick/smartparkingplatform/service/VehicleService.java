@@ -2,6 +2,7 @@ package com.rick.smartparkingplatform.service;
 
 import com.rick.smartparkingplatform.dto.request.VehicleRequest;
 import com.rick.smartparkingplatform.dto.response.VehicleResponse;
+import com.rick.smartparkingplatform.entity.ParkingSession;
 import com.rick.smartparkingplatform.entity.Vehicle;
 import com.rick.smartparkingplatform.enums.VehicleType;
 import com.rick.smartparkingplatform.exception.VehicleAlreadyExistsException;
@@ -15,7 +16,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -196,5 +200,18 @@ public class VehicleService {
 
     }
 
+    /**
+     * Retorna um veículo pela placa.
+     *
+     * @param licensePlate placa do veículo.
+     * @return veículo encontrado.
+     * @throws VehicleNotFoundException caso não exista.
+     */
+    public Vehicle getByLicensePlate(String licensePlate) {
 
+        return vehicleRepository
+                .findByLicensePlate(licensePlate)
+                .orElseThrow(VehicleNotFoundException::new);
+    }
+    
 }

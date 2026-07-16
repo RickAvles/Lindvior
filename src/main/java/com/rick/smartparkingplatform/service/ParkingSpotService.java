@@ -218,4 +218,12 @@ public class ParkingSpotService {
         parkingSpotRepository.save(parkingSpot);
     }
 
+    /**
+     * Retorna a quantidade de vagas ativas com o status informado.
+     */
+    public Long countByStatus(StatusParkingSpot status) {
+
+        return parkingSpotRepository.countByStatusAndActiveTrue(status);
+    }
+
 }

@@ -3,11 +3,13 @@ package com.rick.smartparkingplatform.simulation.generator;
 import com.rick.smartparkingplatform.entity.Vehicle;
 import com.rick.smartparkingplatform.enums.VehicleType;
 import com.rick.smartparkingplatform.service.ParkingService;
+import com.rick.smartparkingplatform.service.ParkingSessionService;
 import com.rick.smartparkingplatform.service.VehicleService;
 import com.rick.smartparkingplatform.simulation.enums.StayProfile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Random;
 
 @Service
@@ -16,9 +18,11 @@ public class VehicleGenerator {
 
     private static final String LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private static final String NUMBERS = "0123456789";
+    private static final int MAX_SELECTION_ATTEMPTS = 20;
 
     private final VehicleService vehicleService;
     private final ParkingService parkingService;
+    private final ParkingSessionService parkingSessionService;
 
     private final Random random = new Random();
 
@@ -114,13 +118,25 @@ public class VehicleGenerator {
     }
 
     /**
-     * Seleciona um veículo existente da população.
+     * Seleciona aleatoriamente um veículo
+     * que não esteja atualmente estacionado.
      */
     private Vehicle getExistingVehicle() {
 
-        int position = random.nextInt((int) vehicleService.count());
+        for (int attempt = 0; attempt < MAX_SELECTION_ATTEMPTS; attempt++) {
 
-        return vehicleService.getVehicleAtPosition(position);
+            int position =
+                    random.nextInt((int) vehicleService.count());
+
+            Vehicle vehicle =
+                    vehicleService.getVehicleAtPosition(position);
+
+            if (!parkingSessionService.hasOpenSession(vehicle.getId())) {
+                return vehicle;
+            }
+        }
+
+        return createNewVehicle();
     }
 
     /**
