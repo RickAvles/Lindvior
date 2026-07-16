@@ -34,8 +34,6 @@ public enum StayCurve {
      * -- GETTER --
      * Retorna os limites utilizados
      * pela curva de permanência.
-     *
-     * @return limites da curva.
      */
     private final long[] limits;
 

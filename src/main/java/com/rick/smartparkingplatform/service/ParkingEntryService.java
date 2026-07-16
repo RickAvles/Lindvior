@@ -21,7 +21,7 @@ public class ParkingEntryService {
      * Processa a entrada de um veículo no estacionamento.
      */
     @Transactional
-    public ParkingSession processEntry(String licensePlate) {
+    public void processEntry(String licensePlate) {
 
         Vehicle vehicle = vehicleService.findByLicensePlate(licensePlate);
 
@@ -31,7 +31,7 @@ public class ParkingEntryService {
 
         parkingSpotService.occupy(parkingSpot);
 
-        ParkingSession session = parkingSessionService.createSession(
+        parkingSessionService.createSession(
                 vehicle,
                 parkingSpot
         );
@@ -39,8 +39,6 @@ public class ParkingEntryService {
         simulationLogger.entry(
                 vehicle.getLicensePlate()
         );
-
-        return session;
     }
 
 }

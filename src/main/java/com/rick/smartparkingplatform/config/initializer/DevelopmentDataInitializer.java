@@ -11,7 +11,6 @@ import com.rick.smartparkingplatform.repository.ParkingRepository;
 import com.rick.smartparkingplatform.repository.ParkingSectorRepository;
 import com.rick.smartparkingplatform.repository.ParkingSpotRepository;
 import com.rick.smartparkingplatform.repository.UserRepository;
-import io.jsonwebtoken.security.Password;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.boot.CommandLineRunner;

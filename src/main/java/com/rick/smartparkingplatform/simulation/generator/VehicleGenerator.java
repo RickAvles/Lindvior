@@ -9,7 +9,6 @@ import com.rick.smartparkingplatform.simulation.enums.StayProfile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Random;
 
 @Service

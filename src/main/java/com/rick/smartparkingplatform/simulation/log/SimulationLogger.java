@@ -1,6 +1,5 @@
 package com.rick.smartparkingplatform.simulation.log;
 
-import com.rick.smartparkingplatform.entity.ParkingSession;
 import com.rick.smartparkingplatform.simulation.enums.StayCurve;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -42,20 +41,4 @@ public class SimulationLogger {
                 durationMinutes
         );
     }
-
-    public void decision(
-            String plate,
-            StayCurve stayCurve,
-            long elapsedMinutes,
-            double probability) {
-
-//        log.info(
-//                "[DECISION] placa={} curva={} tempo={}min probabilidade={}%",
-//                plate,
-//                stayCurve.name(),
-//                elapsedMinutes,
-//                String.format("%.2f", probability * 100)
-//        );
-    }
-
 }

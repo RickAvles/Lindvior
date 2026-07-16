@@ -11,7 +11,6 @@ import com.rick.smartparkingplatform.enums.StatusParkingSpot;
 import com.rick.smartparkingplatform.exception.*;
 import com.rick.smartparkingplatform.repository.ParkingSessionRepository;
 import com.rick.smartparkingplatform.repository.ParkingSpotRepository;
-import com.rick.smartparkingplatform.repository.VehicleRepository;
 import com.rick.smartparkingplatform.specification.ParkingSessionSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -277,6 +276,6 @@ public class ParkingSessionService {
                         StatusParkingSession.ACTIVE
                 );
     }
-    
+
 
 }
