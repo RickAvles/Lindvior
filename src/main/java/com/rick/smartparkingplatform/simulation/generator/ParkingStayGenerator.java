@@ -66,21 +66,9 @@ public class ParkingStayGenerator {
                         .getStayProfile()
                         .getStayCurve();
 
-        double probability =
-                stayCurve.getProbability(
-                        elapsedMinutes
-                );
-
-        simulationLogger.decision(
-                parkingSession
-                        .getVehicle()
-                        .getLicensePlate(),
-                stayCurve,
-                elapsedMinutes,
-                probability
+        return stayCurve.getProbability(
+                elapsedMinutes
         );
-
-        return probability;
     }
 
     /**

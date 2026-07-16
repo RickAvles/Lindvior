@@ -1,6 +1,5 @@
 package com.rick.smartparkingplatform.service;
 
-import com.rick.smartparkingplatform.entity.ParkingSession;
 import com.rick.smartparkingplatform.entity.ParkingSpot;
 import com.rick.smartparkingplatform.entity.Vehicle;
 import com.rick.smartparkingplatform.simulation.log.SimulationLogger;

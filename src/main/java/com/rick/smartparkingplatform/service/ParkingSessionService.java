@@ -232,12 +232,11 @@ public class ParkingSessionService {
     /**
      * Cria e persiste uma nova sessão de estacionamento.
      */
-    public ParkingSession createSession(Vehicle vehicle, ParkingSpot parkingSpot) {
+    public void createSession(Vehicle vehicle, ParkingSpot parkingSpot) {
 
         ParkingSession session = toEntity(vehicle, parkingSpot);
 
-        return parkingSessionRepository.save(session);
-
+        parkingSessionRepository.save(session);
     }
 
     /**

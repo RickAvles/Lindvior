@@ -1,6 +1,5 @@
 package com.rick.smartparkingplatform.simulation.log;
 
-import com.rick.smartparkingplatform.simulation.enums.StayCurve;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
