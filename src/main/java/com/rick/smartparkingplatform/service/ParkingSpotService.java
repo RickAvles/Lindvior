@@ -172,10 +172,25 @@ public class ParkingSpotService {
             );
         }
 
-        Long availableSpots = parkingSpotRepository.countByStatusAndActiveTrue(StatusParkingSpot.FREE);
-        Long occupiedSpots = parkingSpotRepository.countByStatusAndActiveTrue(StatusParkingSpot.OCCUPIED);
+        Long availableSpots =
+                parkingSpotRepository.countByStatusAndActiveTrue(
+                        StatusParkingSpot.FREE
+                );
 
-        double occupancy = (occupiedSpots.doubleValue() / totalSpots.doubleValue()) * 100;
+        Long reservedSpots =
+                parkingSpotRepository.countByStatusAndActiveTrue(
+                        StatusParkingSpot.RESERVED
+                );
+
+        Long occupiedSpots =
+                parkingSpotRepository.countByStatusAndActiveTrue(
+                        StatusParkingSpot.OCCUPIED
+                );
+
+        Long unavailableSpots = reservedSpots + occupiedSpots;
+
+        double occupancy =
+                (unavailableSpots.doubleValue() / totalSpots.doubleValue()) * 100;
 
         BigDecimal occupancyRate = BigDecimal.valueOf(occupancy)
                 .setScale(2, RoundingMode.HALF_UP);
@@ -183,7 +198,7 @@ public class ParkingSpotService {
         return toOccupancy(
                 totalSpots,
                 availableSpots,
-                occupiedSpots,
+                unavailableSpots,
                 occupancyRate
         );
     }
@@ -199,7 +214,7 @@ public class ParkingSpotService {
     }
 
     /**
-     * Marca uma vaga como ocupada.
+     * Marca uma vaga reservada como ocupada.
      */
     public void occupy(ParkingSpot parkingSpot) {
 
@@ -209,11 +224,22 @@ public class ParkingSpotService {
     }
 
     /**
-     * Libera uma vaga ocupada.
+     * Libera uma vaga.
      */
     public void release(ParkingSpot parkingSpot) {
 
         parkingSpot.setStatus(StatusParkingSpot.FREE);
+
+        parkingSpotRepository.save(parkingSpot);
+    }
+
+    /**
+     * Reserva uma vaga para um veículo
+     * que acabou de entrar no estacionamento.
+     */
+    public void reserve(ParkingSpot parkingSpot) {
+
+        parkingSpot.setStatus(StatusParkingSpot.RESERVED);
 
         parkingSpotRepository.save(parkingSpot);
     }

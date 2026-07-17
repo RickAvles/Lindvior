@@ -7,6 +7,9 @@ import com.rick.smartparkingplatform.dto.response.OccupancyResponse;
 import com.rick.smartparkingplatform.simulation.clock.SimulationClock;
 import com.rick.smartparkingplatform.simulation.enums.SimulationState;
 import com.rick.smartparkingplatform.simulation.operation.OperatingHoursService;
+import com.rick.smartparkingplatform.simulation.service.EnteringQueueService;
+import com.rick.smartparkingplatform.simulation.service.EntryQueueService;
+import com.rick.smartparkingplatform.simulation.service.ExitQueueService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +22,11 @@ public class DashboardService {
     private final SimulationClock simulationClock;
     private final OperatingHoursService operatingHoursService;
     private final ParkingSpotService parkingSpotService;
+    private final EntryQueueService entryQueueService;
+
+    private final EnteringQueueService enteringQueueService;
+
+    private final ExitQueueService exitQueueService;
 
     /**
      * Converte os dados da simulação para o DTO de resposta.
@@ -43,7 +51,10 @@ public class DashboardService {
                 occupancy.totalSpots(),
                 occupancy.availableSpots(),
                 occupancy.occupiedSpots(),
-                occupancy.occupancyRate()
+                occupancy.occupancyRate(),
+                entryQueueService.size(),
+                enteringQueueService.size(),
+                exitQueueService.size()
         );
     }
 

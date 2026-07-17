@@ -11,6 +11,16 @@ spring:
         default-page-size: 20
         max-page-size: 100
 
+simulation:
+  tick:
+    interval-seconds: 1
+  entry:
+    cooldown-seconds: 8
+  exit:
+    cooldown-seconds: 8
+  parking:
+    cooldown-seconds: 6
+
 jwt:
   secret-key: LindviorSecretSmartParkingPlatformDevelopment2026JWT
   expiration: 86400000
