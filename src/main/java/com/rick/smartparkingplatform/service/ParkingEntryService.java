@@ -1,8 +1,9 @@
 package com.rick.smartparkingplatform.service;
 
+import com.rick.smartparkingplatform.entity.ParkingSession;
 import com.rick.smartparkingplatform.entity.ParkingSpot;
 import com.rick.smartparkingplatform.entity.Vehicle;
-import com.rick.smartparkingplatform.simulation.log.SimulationLogger;
+import com.rick.smartparkingplatform.simulation.service.EnteringQueueService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +15,7 @@ public class ParkingEntryService {
     private final VehicleService vehicleService;
     private final ParkingSpotService parkingSpotService;
     private final ParkingSessionService parkingSessionService;
-    private final SimulationLogger simulationLogger;
+    private final EnteringQueueService enteringQueueService;
 
     /**
      * Processa a entrada de um veículo no estacionamento.
@@ -28,16 +29,15 @@ public class ParkingEntryService {
 
         ParkingSpot parkingSpot = parkingSpotService.findAvailableSpot();
 
-        parkingSpotService.occupy(parkingSpot);
+        parkingSpotService.reserve(parkingSpot);
 
-        parkingSessionService.createSession(
-                vehicle,
-                parkingSpot
-        );
+        ParkingSession parkingSession =
+                parkingSessionService.createSession(
+                        vehicle,
+                        parkingSpot
+                );
 
-        simulationLogger.entry(
-                vehicle.getLicensePlate()
-        );
+        enteringQueueService.enqueue(parkingSession);
     }
 
 }

@@ -1,11 +1,10 @@
 package com.rick.smartparkingplatform.service;
 
 import com.rick.smartparkingplatform.entity.ParkingSession;
+import com.rick.smartparkingplatform.simulation.service.ExitQueueService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -13,15 +12,13 @@ public class ParkingExitService {
 
     private final ParkingSpotService parkingSpotService;
     private final ParkingSessionService parkingSessionService;
+    private final ExitQueueService exitQueueService;
 
     /**
      * Processa a saída de um veículo do estacionamento.
      */
     @Transactional
-    public void processExit(UUID parkingSessionId) {
-
-        ParkingSession parkingSession =
-                parkingSessionService.getEntity(parkingSessionId);
+    public void processExit(ParkingSession parkingSession) {
 
         parkingSessionService.validateOpenSession(parkingSession);
 
@@ -29,7 +26,9 @@ public class ParkingExitService {
                 parkingSession.getParkingSpot()
         );
 
-        parkingSessionService.closeSession(parkingSession);
+        parkingSessionService.startExit(parkingSession);
+
+        exitQueueService.enqueue(parkingSession);
     }
 
 }

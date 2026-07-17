@@ -1,6 +1,7 @@
 package com.rick.smartparkingplatform.simulation.service;
 
 import com.rick.smartparkingplatform.entity.ParkingSession;
+import com.rick.smartparkingplatform.service.ParkingSessionService;
 import com.rick.smartparkingplatform.simulation.clock.SimulationClock;
 import com.rick.smartparkingplatform.simulation.enums.StayCurve;
 import com.rick.smartparkingplatform.simulation.log.SimulationLogger;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +29,10 @@ public class RecoveryService {
 
     private LocalDateTime recoveryStartedAt;
 
+    private final ParkingSessionService parkingSessionService;
+
+    private final EnteringQueueService enteringQueueService;
+
     /**
      * Inicializa o período de recuperação
      * após a partida da aplicação.
@@ -41,9 +47,9 @@ public class RecoveryService {
         startupTime = simulationClock.getCurrentTime();
 
         recoveryEndsAt =
-                startupTime.plusMinutes(
-                        RECOVERY_DURATION_MINUTES
-                );
+                startupTime.plusMinutes(RECOVERY_DURATION_MINUTES);
+
+        restoreEnteringSessions();
     }
 
     /**
@@ -145,6 +151,14 @@ public class RecoveryService {
         }
 
         return false;
+    }
+
+    private void restoreEnteringSessions() {
+
+        List<ParkingSession> enteringSessions =
+                parkingSessionService.getEnteringSessions();
+
+        enteringSessions.forEach(enteringQueueService::enqueue);
     }
 
 }

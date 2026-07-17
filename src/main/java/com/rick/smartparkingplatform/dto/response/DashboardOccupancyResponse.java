@@ -11,7 +11,13 @@ public record DashboardOccupancyResponse(
 
         Long occupiedSpots,
 
-        BigDecimal occupancyRate
+        BigDecimal occupancyRate,
+
+        Integer entryQueue,
+
+        Integer parkingQueue,
+
+        Integer exitQueue
 
 ) {
 }

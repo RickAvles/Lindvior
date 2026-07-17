@@ -43,7 +43,7 @@ public class ParkingSessionService {
         parkingSession.setParkingSpot(parkingSpot);
         parkingSession.setEntryTime(now);
         parkingSession.setCreatedAt(now);
-        parkingSession.setStatus(StatusParkingSession.ACTIVE);
+        parkingSession.setStatus(StatusParkingSession.ENTERING);
 
         return parkingSession;
     }
@@ -220,9 +220,9 @@ public class ParkingSessionService {
      */
     public void validateNoOpenSession(Vehicle vehicle) {
 
-        if (parkingSessionRepository.existsByVehicleAndStatus(
-                vehicle,
-                StatusParkingSession.ACTIVE)) {
+        if (parkingSessionRepository.existsByVehicleIdAndStatusNot(
+                vehicle.getId(),
+                StatusParkingSession.FINISHED)) {
 
             throw new OpenParkingSessionAlreadyExistsException();
         }
@@ -232,11 +232,11 @@ public class ParkingSessionService {
     /**
      * Cria e persiste uma nova sessão de estacionamento.
      */
-    public void createSession(Vehicle vehicle, ParkingSpot parkingSpot) {
+    public ParkingSession createSession(Vehicle vehicle, ParkingSpot parkingSpot) {
 
-        ParkingSession session = toEntity(vehicle, parkingSpot);
+        ParkingSession parkingSession = toEntity(vehicle, parkingSpot);
 
-        parkingSessionRepository.save(session);
+        return parkingSessionRepository.save(parkingSession);
     }
 
     /**
@@ -274,6 +274,47 @@ public class ParkingSessionService {
                         vehicleId,
                         StatusParkingSession.ACTIVE
                 );
+    }
+
+    /**
+     * Libera uma vaga de estacionamento.
+     */
+    public void release(ParkingSpot parkingSpot) {
+
+        parkingSpot.setStatus(StatusParkingSpot.FREE);
+
+        parkingSpotRepository.save(parkingSpot);
+    }
+
+    /**
+     * Marca a sessão como estacionada.
+     */
+    public void park(ParkingSession parkingSession) {
+
+        parkingSession.setStatus(StatusParkingSession.ACTIVE);
+
+        parkingSessionRepository.save(parkingSession);
+    }
+
+    /**
+     * Marca a sessão como em processo de saída.
+     */
+    public void startExit(ParkingSession parkingSession) {
+
+        parkingSession.setStatus(StatusParkingSession.EXITING);
+
+        parkingSessionRepository.save(parkingSession);
+    }
+
+    /**
+     * Retorna todas as sessões que ainda
+     * estão procurando uma vaga.
+     */
+    public List<ParkingSession> getEnteringSessions() {
+
+        return parkingSessionRepository.findByStatus(
+                StatusParkingSession.ENTERING
+        );
     }
 
 
