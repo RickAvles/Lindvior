@@ -9,9 +9,11 @@ import java.time.LocalDateTime;
 @Slf4j
 public class SimulationLogger {
 
-    /**
-     * Registra a entrada de um veículo no estacionamento.
-     */
+    // =========================
+    // Entrada e saída
+    // =========================
+
+    // Registra a entrada de um veículo no estacionamento.
     public void entry(String plate) {
 
         log.info(
@@ -20,21 +22,17 @@ public class SimulationLogger {
         );
     }
 
-    /**
-     * Registra a saída de um veículo da vaga.
-     */
+    // Registra a saída de um veículo da vaga.
     public void exit(String plate, double probability) {
 
         log.info(
                 "[EXIT] Veículo {} saiu da vaga. Probabilidade={}% ",
                 plate,
-                String.format("%.2f", probability * 100)
+                formatPercentage(probability)
         );
     }
 
-    /**
-     * Registra a saída definitiva do veículo do estacionamento.
-     */
+    // Registra a saída definitiva do veículo do estacionamento.
     public void leave(String plate) {
 
         log.info(
@@ -43,25 +41,11 @@ public class SimulationLogger {
         );
     }
 
-    /**
-     * Registra a recuperação de uma sessão após reinício da aplicação.
-     */
-    public void recovery(
-            String plate,
-            long recoveryElapsedSeconds,
-            double probability) {
+    // =========================
+    // Recuperação
+    // =========================
 
-        log.info(
-                "[RECOVERY] Veículo {} | segundo={} | probabilidade={}% ",
-                plate,
-                recoveryElapsedSeconds,
-                String.format("%.2f", probability * 100)
-        );
-    }
-
-    /**
-     * Registra o início do processo de recuperação.
-     */
+    // Registra o início do processo de recuperação.
     public void startup(
             LocalDateTime startedAt,
             long durationMinutes) {
@@ -73,9 +57,25 @@ public class SimulationLogger {
         );
     }
 
-    /**
-     * Registra a chegada de um veículo na fila de entrada.
-     */
+    // Registra a recuperação de uma sessão após reinício da aplicação.
+    public void recovery(
+            String plate,
+            long recoveryElapsedSeconds,
+            double probability) {
+
+        log.info(
+                "[RECOVERY] Veículo {} | segundo={} | probabilidade={}% ",
+                plate,
+                recoveryElapsedSeconds,
+                formatPercentage(probability)
+        );
+    }
+
+    // =========================
+    // Fila de entrada
+    // =========================
+
+    // Registra a chegada de um veículo na fila de entrada.
     public void entryQueue(
             String plate,
             int queueSize) {
@@ -87,9 +87,7 @@ public class SimulationLogger {
         );
     }
 
-    /**
-     * Registra a liberação de um veículo da fila de entrada.
-     */
+    // Registra a liberação de um veículo da fila de entrada.
     public void entryQueueRelease(
             String plate,
             int queueSize) {
@@ -101,9 +99,11 @@ public class SimulationLogger {
         );
     }
 
-    /**
-     * Registra a chegada de uma sessão na fila de deslocamento até a vaga.
-     */
+    // =========================
+    // Fila de estacionamento
+    // =========================
+
+    // Registra a chegada de uma sessão na fila de deslocamento até a vaga.
     public void enteringQueue(
             String plate,
             int queueSize) {
@@ -115,9 +115,7 @@ public class SimulationLogger {
         );
     }
 
-    /**
-     * Registra a liberação de uma sessão da fila de deslocamento até a vaga.
-     */
+    // Registra a liberação de uma sessão da fila de deslocamento até a vaga.
     public void enteringQueueRelease(
             String plate,
             int queueSize) {
@@ -129,9 +127,11 @@ public class SimulationLogger {
         );
     }
 
-    /**
-     * Registra a chegada de um veículo na fila de saída.
-     */
+    // =========================
+    // Fila de saída
+    // =========================
+
+    // Registra a chegada de um veículo na fila de saída.
     public void exitQueue(
             String plate,
             int queueSize) {
@@ -143,9 +143,7 @@ public class SimulationLogger {
         );
     }
 
-    /**
-     * Registra a liberação de um veículo da fila de saída.
-     */
+    // Registra a liberação de um veículo da fila de saída.
     public void exitQueueRelease(
             String plate,
             int queueSize) {
@@ -155,6 +153,12 @@ public class SimulationLogger {
                 plate,
                 queueSize
         );
+    }
+
+    // Formata uma probabilidade como percentual com duas casas decimais.
+    private String formatPercentage(double probability) {
+
+        return "%.2f".formatted(probability * 100);
     }
 
 }

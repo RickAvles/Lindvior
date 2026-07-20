@@ -4,12 +4,13 @@ import com.rick.smartparkingplatform.dto.response.DashboardOccupancyResponse;
 import com.rick.smartparkingplatform.dto.response.DashboardResponse;
 import com.rick.smartparkingplatform.dto.response.DashboardSimulationResponse;
 import com.rick.smartparkingplatform.dto.response.OccupancyResponse;
-import com.rick.smartparkingplatform.simulation.clock.SimulationClock;
-import com.rick.smartparkingplatform.simulation.enums.SimulationState;
+import com.rick.smartparkingplatform.simulation.conditions.ConditionService;
+import com.rick.smartparkingplatform.simulation.engine.SimulationClock;
 import com.rick.smartparkingplatform.simulation.operation.OperatingHoursService;
-import com.rick.smartparkingplatform.simulation.service.EnteringQueueService;
-import com.rick.smartparkingplatform.simulation.service.EntryQueueService;
-import com.rick.smartparkingplatform.simulation.service.ExitQueueService;
+import com.rick.smartparkingplatform.simulation.operation.SimulationState;
+import com.rick.smartparkingplatform.simulation.queue.EntryQueueService;
+import com.rick.smartparkingplatform.simulation.queue.ExitQueueService;
+import com.rick.smartparkingplatform.simulation.queue.ParkingQueueService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,8 +24,9 @@ public class DashboardService {
     private final OperatingHoursService operatingHoursService;
     private final ParkingSpotService parkingSpotService;
     private final EntryQueueService entryQueueService;
+    private final ConditionService conditionService;
 
-    private final EnteringQueueService enteringQueueService;
+    private final ParkingQueueService parkingQueueService;
 
     private final ExitQueueService exitQueueService;
 
@@ -37,7 +39,9 @@ public class DashboardService {
 
         return new DashboardSimulationResponse(
                 currentTime,
-                simulationState
+                simulationState,
+                conditionService.getCurrentDayType(),
+                conditionService.getCurrentWeather()
         );
     }
 
@@ -53,7 +57,7 @@ public class DashboardService {
                 occupancy.occupiedSpots(),
                 occupancy.occupancyRate(),
                 entryQueueService.size(),
-                enteringQueueService.size(),
+                parkingQueueService.size(),
                 exitQueueService.size()
         );
     }

@@ -3,7 +3,6 @@ package com.rick.smartparkingplatform.simulation.operation;
 import com.rick.smartparkingplatform.entity.Parking;
 
 import com.rick.smartparkingplatform.service.ParkingService;
-import com.rick.smartparkingplatform.simulation.enums.SimulationState;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +15,13 @@ public class OperatingHoursService {
 
     private final ParkingService parkingService;
 
-    private SimulationState calculateState(LocalTime simulationTime, Parking parking) {
+    // Retorna o estado atual do estacionamento.
+    public SimulationState getCurrentState(LocalDateTime currentTime) {
+
+        Parking parking = parkingService.getCurrentParking();
+
+        LocalTime simulationTime = currentTime.toLocalTime();
+
         LocalTime openingTime = parking.getOpeningTime();
         LocalTime closingTime = parking.getClosingTime();
 
@@ -26,13 +31,5 @@ public class OperatingHoursService {
 
         return SimulationState.CLOSED;
     }
-
-    public SimulationState getCurrentState(LocalDateTime currentTime) {
-
-        Parking parking = parkingService.getCurrentParking();
-
-        return calculateState(currentTime.toLocalTime(), parking);
-    }
-    
 
 }

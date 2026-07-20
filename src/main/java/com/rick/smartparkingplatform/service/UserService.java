@@ -19,7 +19,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    private User toEntity(UserRequest request) {
+    private User requestToEntity(UserRequest request) {
         User user = new User();
 
         user.setEmail(request.email());
@@ -53,7 +53,7 @@ public class UserService {
 
         //validação request.password
 
-        User user = toEntity(request);
+        User user = requestToEntity(request);
 
         user = userRepository.save(user);
 

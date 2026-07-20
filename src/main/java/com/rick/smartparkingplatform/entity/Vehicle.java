@@ -1,7 +1,7 @@
 package com.rick.smartparkingplatform.entity;
 
 import com.rick.smartparkingplatform.enums.VehicleType;
-import com.rick.smartparkingplatform.simulation.enums.StayProfile;
+import com.rick.smartparkingplatform.simulation.parking.stay.StayProfile;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

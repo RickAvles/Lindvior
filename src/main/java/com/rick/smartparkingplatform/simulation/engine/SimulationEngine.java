@@ -1,9 +1,7 @@
 package com.rick.smartparkingplatform.simulation.engine;
 
 import com.rick.smartparkingplatform.service.ParkingService;
-import com.rick.smartparkingplatform.simulation.clock.SimulationClock;
-import com.rick.smartparkingplatform.simulation.decision.DecisionEngine;
-import com.rick.smartparkingplatform.simulation.enums.SimulationState;
+import com.rick.smartparkingplatform.simulation.conditions.ConditionService;
 import com.rick.smartparkingplatform.simulation.operation.OperatingHoursService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,30 +12,42 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class SimulationEngine {
 
+    private boolean initialized;
+
+    private final ConditionService conditionService;
+
     private final DecisionEngine decisionEngine;
     private final SimulationClock simulationClock;
     private final OperatingHoursService operatingHoursService;
     private final ParkingService parkingService;
 
-    /**
-     * Executa um ciclo completo da simulação.
-     */
     public void processTick() {
 
         if (!parkingService.exists()) {
             return;
         }
 
+        initialize();
+
         LocalDateTime currentTime = simulationClock.getCurrentTime();
 
-        SimulationState state = operatingHoursService.getCurrentState(currentTime);
-
-        switch (state) {
+        switch (operatingHoursService.getCurrentState(currentTime)) {
 
             case OPEN -> decisionEngine.processOpenTick();
 
             case CLOSED -> decisionEngine.processClosedTick();
         }
+    }
+
+    private void initialize() {
+
+        if (initialized) {
+            return;
+        }
+
+        conditionService.initialize();
+
+        initialized = true;
     }
 
 }

@@ -7,7 +7,7 @@ import com.rick.smartparkingplatform.enums.VehicleType;
 import com.rick.smartparkingplatform.exception.VehicleAlreadyExistsException;
 import com.rick.smartparkingplatform.exception.VehicleNotFoundException;
 import com.rick.smartparkingplatform.repository.VehicleRepository;
-import com.rick.smartparkingplatform.simulation.enums.StayProfile;
+import com.rick.smartparkingplatform.simulation.parking.stay.StayProfile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,9 +23,11 @@ public class VehicleService {
 
     private final VehicleRepository vehicleRepository;
 
-    /**
-     * Converte o DTO de requisição para uma entidade Vehicle.
-     */
+    // =====================================================
+    // API
+    // =====================================================
+
+    // Converte o DTO de requisição para uma entidade Vehicle.
     private Vehicle requestToEntity(VehicleRequest request) {
 
         Vehicle vehicle = new Vehicle();
@@ -39,9 +41,7 @@ public class VehicleService {
         return vehicle;
     }
 
-    /**
-     * Converte uma entidade Vehicle para o DTO de resposta.
-     */
+    // Converte uma entidade Vehicle para o DTO de resposta.
     private VehicleResponse entityToResponse(Vehicle vehicle) {
 
         return new VehicleResponse(
@@ -54,27 +54,19 @@ public class VehicleService {
         );
     }
 
-    /**
-     * Busca um veículo pelo identificador.
-     */
+    // Busca um veículo pelo identificador.
     private Vehicle findVehicleById(UUID id) {
 
-        return vehicleRepository.findById(id)
-                .orElseThrow(VehicleNotFoundException::new);
+        return vehicleRepository.findById(id).orElseThrow(VehicleNotFoundException::new);
     }
 
-    /**
-     * Lista todos os veículos cadastrados.
-     */
+    // Lista todos os veículos cadastrados.
     public Page<VehicleResponse> findAll(Pageable pageable) {
 
-        return vehicleRepository.findAll(pageable)
-                .map(this::entityToResponse);
+        return vehicleRepository.findAll(pageable).map(this::entityToResponse);
     }
 
-    /**
-     * Busca um veículo pelo identificador.
-     */
+    // Retorna um veículo pelo identificador.
     public VehicleResponse getById(UUID id) {
 
         Vehicle vehicle = findVehicleById(id);
@@ -82,9 +74,7 @@ public class VehicleService {
         return entityToResponse(vehicle);
     }
 
-    /**
-     * Cadastra um novo veículo.
-     */
+    // Cadastra um novo veículo.
     public VehicleResponse create(VehicleRequest request) {
 
         if (vehicleRepository.existsByLicensePlate(request.licensePlate())) {
@@ -98,15 +88,12 @@ public class VehicleService {
         return entityToResponse(savedVehicle);
     }
 
-    /**
-     * Atualiza os dados de um veículo.
-     */
+    // Atualiza os dados de um veículo.
     public VehicleResponse update(UUID id, VehicleRequest request) {
 
         Vehicle vehicle = findVehicleById(id);
 
-        if (!vehicle.getLicensePlate().equals(request.licensePlate())
-                && vehicleRepository.existsByLicensePlate(request.licensePlate())) {
+        if (!vehicle.getLicensePlate().equals(request.licensePlate()) && vehicleRepository.existsByLicensePlate(request.licensePlate())) {
 
             throw new VehicleAlreadyExistsException();
         }
@@ -115,15 +102,12 @@ public class VehicleService {
         vehicle.setType(request.type());
         vehicle.setColor(request.color());
 
-
         Vehicle updatedVehicle = vehicleRepository.save(vehicle);
 
         return entityToResponse(updatedVehicle);
     }
 
-    /**
-     * Desativa um veículo.
-     */
+    // Desativa um veículo.
     public VehicleResponse deactivate(UUID id) {
 
         Vehicle vehicle = findVehicleById(id);
@@ -135,40 +119,31 @@ public class VehicleService {
         return entityToResponse(updatedVehicle);
     }
 
-    /**
-     * Busca um veículo pela placa.
-     */
+    // =====================================================
+    // SIMULAÇÃO
+    // =====================================================
+
+    // Busca um veículo pela placa.
     public Vehicle findByLicensePlate(String licensePlate) {
 
-        return vehicleRepository.findByLicensePlate(licensePlate)
-                .orElseThrow(VehicleNotFoundException::new);
-
+        return vehicleRepository.findByLicensePlate(licensePlate).orElseThrow(VehicleNotFoundException::new);
     }
 
-    /**
-     * Retorna a quantidade de veículos cadastrados.
-     */
+    // Retorna a quantidade de veículos cadastrados.
     public long count() {
 
         return vehicleRepository.count();
-
     }
 
-    /**
-     * Retorna o veículo localizado na posição informada.
-     */
+    // Retorna o veículo localizado na posição informada.
     public Vehicle getVehicleAtPosition(int position) {
 
         Pageable pageable = PageRequest.of(position, 1);
 
-        return vehicleRepository.findAll(pageable)
-                .getContent()
-                .getFirst();
+        return vehicleRepository.findAll(pageable).getContent().getFirst();
     }
 
-    /**
-     * Cadastra um novo veículo gerado pela simulação.
-     */
+    // Cadastra um novo veículo gerado pela simulação.
     public Vehicle createGeneratedVehicle(
             String licensePlate,
             VehicleType type,
@@ -187,27 +162,16 @@ public class VehicleService {
         return vehicleRepository.save(vehicle);
     }
 
-    /**
-     * Verifica se já existe um veículo cadastrado com a placa informada.
-     */
+    // Verifica se já existe um veículo cadastrado com a placa informada.
     public boolean existsByLicensePlate(String licensePlate) {
 
         return vehicleRepository.existsByLicensePlate(licensePlate);
-
     }
 
-    /**
-     * Retorna um veículo pela placa.
-     *
-     * @param licensePlate placa do veículo.
-     * @return veículo encontrado.
-     * @throws VehicleNotFoundException caso não exista.
-     */
-    public Vehicle getByLicensePlate(String licensePlate) {
+    // =====================================================
+    // RELATÓRIOS
+    // =====================================================
 
-        return vehicleRepository
-                .findByLicensePlate(licensePlate)
-                .orElseThrow(VehicleNotFoundException::new);
-    }
+    // Nenhum méto do por enquanto.
 
 }

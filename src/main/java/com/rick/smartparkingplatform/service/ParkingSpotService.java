@@ -30,9 +30,11 @@ public class ParkingSpotService {
     private final ParkingSpotRepository parkingSpotRepository;
     private final ParkingSectorRepository parkingSectorRepository;
 
-    /**
-     * Converte o DTO de criação em uma entidade ParkingSpot.
-     */
+    // =====================================================
+    // API
+    // =====================================================
+
+    // Converte o DTO de criação em uma entidade ParkingSpot.
     private ParkingSpot requestToEntity(ParkingSpotRequest request) {
 
         ParkingSector parkingSector = parkingSectorRepository.findById(request.parkingSectorId())
@@ -49,9 +51,7 @@ public class ParkingSpotService {
         return parkingSpot;
     }
 
-    /**
-     * Converte uma entidade ParkingSpot para o DTO de resposta.
-     */
+    // Converte uma entidade ParkingSpot para o DTO de resposta.
     private ParkingSpotResponse entityToResponse(ParkingSpot parkingSpot) {
 
         ParkingSector sector = parkingSpot.getParkingSector();
@@ -68,9 +68,7 @@ public class ParkingSpotService {
         );
     }
 
-    /**
-     * Monta dinamicamente os filtros da consulta.
-     */
+    // Monta dinamicamente os filtros da consulta.
     private Specification<ParkingSpot> buildSpecification(ParkingSpotFilter filter) {
 
         Specification<ParkingSpot> specification = Specification.unrestricted();
@@ -108,26 +106,7 @@ public class ParkingSpotService {
         return specification;
     }
 
-    /**
-     * Constrói a resposta de ocupação do estacionamento.
-     */
-    private OccupancyResponse toOccupancy(
-            Long totalSpots,
-            Long availableSpots,
-            Long occupiedSpots,
-            BigDecimal occupancyRate) {
-
-        return new OccupancyResponse(
-                totalSpots,
-                availableSpots,
-                occupiedSpots,
-                occupancyRate
-        );
-    }
-
-    /**
-     * Lista as vagas aplicando os filtros informados.
-     */
+    // Busca as vagas aplicando os filtros informados.
     public Page<ParkingSpotResponse> findAll(Pageable pageable, ParkingSpotFilter filter) {
 
         Specification<ParkingSpot> specification = buildSpecification(filter);
@@ -137,9 +116,7 @@ public class ParkingSpotService {
                 .map(this::entityToResponse);
     }
 
-    /**
-     * Cria uma nova vaga vinculada a um setor.
-     */
+    // Cria uma nova vaga vinculada a um setor.
     public ParkingSpotResponse create(ParkingSpotRequest request) {
 
         ParkingSpot parkingSpot = requestToEntity(request);
@@ -156,9 +133,91 @@ public class ParkingSpotService {
         return entityToResponse(savedParkingSpot);
     }
 
-    /**
-     * Calcula a ocupação atual do estacionamento.
-     */
+    // =====================================================
+    // SIMULAÇÃO
+    // =====================================================
+
+    // Verifica se existe alguma vaga disponível.
+    public boolean hasAvailableSpot() {
+
+        return parkingSpotRepository.existsByStatusAndActiveTrue(StatusParkingSpot.FREE);
+    }
+
+    // Retorna a taxa de ocupação do estacionamento.
+    public double getOccupancyRate() {
+
+        long totalSpots = parkingSpotRepository.countByActiveTrue();
+
+        if (totalSpots == 0) {
+            return 0.0;
+        }
+
+        long occupiedSpots = totalSpots
+                - parkingSpotRepository.countByStatusAndActiveTrue(
+                StatusParkingSpot.FREE
+        );
+
+        return (double) occupiedSpots / totalSpots;
+    }
+
+    // Reserva a próxima vaga disponível.
+    public ParkingSpot reserveAvailableSpot() {
+
+        ParkingSpot parkingSpot = findAvailableSpot();
+
+        updateStatus(parkingSpot, StatusParkingSpot.RESERVED);
+
+        return parkingSpot;
+    }
+
+    // Busca a próxima vaga livre.
+    private ParkingSpot findAvailableSpot() {
+
+        return parkingSpotRepository
+                .findNextAvailableSpot()
+                .orElseThrow(NoParkingSpotsAvailableException::new);
+    }
+
+    // Ocupa uma vaga.
+    public void occupy(ParkingSpot parkingSpot) {
+
+        updateStatus(parkingSpot, StatusParkingSpot.OCCUPIED);
+    }
+
+    // Libera uma vaga.
+    public void release(ParkingSpot parkingSpot) {
+
+        updateStatus(parkingSpot, StatusParkingSpot.FREE);
+    }
+
+    // Atualiza o status da vaga.
+    private void updateStatus(ParkingSpot parkingSpot, StatusParkingSpot status) {
+
+        parkingSpot.setStatus(status);
+
+        parkingSpotRepository.save(parkingSpot);
+    }
+
+    // =====================================================
+    // RELATÓRIOS
+    // =====================================================
+
+    // Constrói a resposta de ocupação do estacionamento.
+    private OccupancyResponse toOccupancy(
+            Long totalSpots,
+            Long availableSpots,
+            Long occupiedSpots,
+            BigDecimal occupancyRate) {
+
+        return new OccupancyResponse(
+                totalSpots,
+                availableSpots,
+                occupiedSpots,
+                occupancyRate
+        );
+    }
+
+    // Calcula a ocupação atual do estacionamento.
     public OccupancyResponse getOccupancy() {
 
         Long totalSpots = parkingSpotRepository.countByActiveTrue();
@@ -201,47 +260,6 @@ public class ParkingSpotService {
                 unavailableSpots,
                 occupancyRate
         );
-    }
-
-    /**
-     * Retorna a primeira vaga livre e ativa disponível.
-     */
-    public ParkingSpot findAvailableSpot() {
-
-        return parkingSpotRepository
-                .findFirstByStatusAndActiveTrue(StatusParkingSpot.FREE)
-                .orElseThrow(NoParkingSpotsAvailableException::new);
-    }
-
-    /**
-     * Marca uma vaga reservada como ocupada.
-     */
-    public void occupy(ParkingSpot parkingSpot) {
-
-        parkingSpot.setStatus(StatusParkingSpot.OCCUPIED);
-
-        parkingSpotRepository.save(parkingSpot);
-    }
-
-    /**
-     * Libera uma vaga.
-     */
-    public void release(ParkingSpot parkingSpot) {
-
-        parkingSpot.setStatus(StatusParkingSpot.FREE);
-
-        parkingSpotRepository.save(parkingSpot);
-    }
-
-    /**
-     * Reserva uma vaga para um veículo
-     * que acabou de entrar no estacionamento.
-     */
-    public void reserve(ParkingSpot parkingSpot) {
-
-        parkingSpot.setStatus(StatusParkingSpot.RESERVED);
-
-        parkingSpotRepository.save(parkingSpot);
     }
 
 }
