@@ -15,11 +15,11 @@ simulation:
   tick:
     interval-seconds: 1
   entry:
-    cooldown-seconds: 8
+    cooldown-seconds: 12
   exit:
-    cooldown-seconds: 8
+    cooldown-seconds: 10
   parking:
-    cooldown-seconds: 6
+    cooldown-seconds: 8
 
 jwt:
   secret-key: LindviorSecretSmartParkingPlatformDevelopment2026JWT

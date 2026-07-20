@@ -1,16 +1,15 @@
 package com.rick.smartparkingplatform.service;
 
 import com.rick.smartparkingplatform.dto.filter.ParkingSessionFilter;
-import com.rick.smartparkingplatform.dto.request.ParkingSessionRequest;
 import com.rick.smartparkingplatform.dto.response.ParkingSessionResponse;
 import com.rick.smartparkingplatform.entity.ParkingSession;
 import com.rick.smartparkingplatform.entity.ParkingSpot;
 import com.rick.smartparkingplatform.entity.Vehicle;
 import com.rick.smartparkingplatform.enums.StatusParkingSession;
-import com.rick.smartparkingplatform.enums.StatusParkingSpot;
-import com.rick.smartparkingplatform.exception.*;
+import com.rick.smartparkingplatform.exception.OpenParkingSessionAlreadyExistsException;
+import com.rick.smartparkingplatform.exception.ParkingAlreadyClosedException;
+import com.rick.smartparkingplatform.exception.ResourceNotFoundException;
 import com.rick.smartparkingplatform.repository.ParkingSessionRepository;
-import com.rick.smartparkingplatform.repository.ParkingSpotRepository;
 import com.rick.smartparkingplatform.specification.ParkingSessionSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -27,13 +26,13 @@ import java.util.UUID;
 public class ParkingSessionService {
 
     private final ParkingSessionRepository parkingSessionRepository;
-    private final ParkingSpotRepository parkingSpotRepository;
-    private final VehicleService vehicleService;
 
-    /**
-     * Converte os dados necessários para uma entidade ParkingSession.
-     */
-    private ParkingSession toEntity(Vehicle vehicle, ParkingSpot parkingSpot) {
+    // =====================================================
+    // API
+    // =====================================================
+
+    // Converte os dados necessários para uma entidade ParkingSession.
+    private ParkingSession requestToEntity(Vehicle vehicle, ParkingSpot parkingSpot) {
 
         ParkingSession parkingSession = new ParkingSession();
 
@@ -48,9 +47,7 @@ public class ParkingSessionService {
         return parkingSession;
     }
 
-    /**
-     * Converte uma entidade ParkingSession para o DTO de resposta.
-     */
+    // Converte uma entidade ParkingSession para o DTO de resposta.
     private ParkingSessionResponse toResponse(ParkingSession session) {
 
         return new ParkingSessionResponse(
@@ -65,9 +62,7 @@ public class ParkingSessionService {
         );
     }
 
-    /**
-     * Monta dinamicamente os filtros da consulta.
-     */
+    // Monta dinamicamente os filtros da consulta.
     private Specification<ParkingSession> buildSpecification(ParkingSessionFilter filter) {
 
         Specification<ParkingSession> specification = Specification.unrestricted();
@@ -105,98 +100,27 @@ public class ParkingSessionService {
         return specification;
     }
 
-    /**
-     * Busca uma sessão pelo identificador.
-     */
+    // Busca uma sessão pelo identificador.
     private ParkingSession findParkingSessionById(UUID id) {
 
-        return parkingSessionRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Parking session not found."));
+        return parkingSessionRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Parking session not found."));
     }
 
-    /**
-     * Lista sessões aplicando os filtros informados.
-     */
+    // Lista sessões aplicando os filtros informados.
     public Page<ParkingSessionResponse> findAll(Pageable pageable, ParkingSessionFilter filter) {
 
         Specification<ParkingSession> specification = buildSpecification(filter);
 
-        return parkingSessionRepository
-                .findAll(specification, pageable)
-                .map(this::toResponse);
+        return parkingSessionRepository.findAll(specification, pageable).map(this::toResponse);
     }
 
-    /**
-     * Abre uma nova sessão de estacionamento.
-     */
-    public ParkingSessionResponse create(ParkingSessionRequest request) {
-
-        Vehicle vehicle = vehicleService.getByLicensePlate(request.licensePlate());
-
-        if (parkingSessionRepository.existsByVehicleAndStatus(
-                vehicle,
-                StatusParkingSession.ACTIVE)) {
-
-            throw new OpenParkingSessionAlreadyExistsException();
-        }
-
-        if (!parkingSpotRepository.existsByActiveTrue()) {
-            throw new ParkingCurrentlyUnavailableException();
-        }
-
-        ParkingSpot parkingSpot = parkingSpotRepository
-                .findFirstByStatusAndActiveTrue(StatusParkingSpot.FREE)
-                .orElseThrow(NoParkingSpotsAvailableException::new);
-
-        parkingSpot.setStatus(StatusParkingSpot.OCCUPIED);
-
-        ParkingSession parkingSession = toEntity(vehicle, parkingSpot);
-
-        parkingSpotRepository.save(parkingSpot);
-
-        ParkingSession savedParkingSession =
-                parkingSessionRepository.save(parkingSession);
-
-        return toResponse(savedParkingSession);
-    }
-
-    /**
-     * Finaliza uma sessão de estacionamento.
-     */
-    public ParkingSessionResponse close(UUID id) {
-
-        ParkingSession parkingSession = findParkingSessionById(id);
-        ParkingSpot parkingSpot = parkingSession.getParkingSpot();
-
-        if (parkingSession.getStatus() != StatusParkingSession.ACTIVE) {
-            throw new ParkingAlreadyClosedException();
-        }
-
-        parkingSession.setExitTime(LocalDateTime.now());
-        parkingSession.setStatus(StatusParkingSession.FINISHED);
-
-        parkingSpot.setStatus(StatusParkingSpot.FREE);
-
-        parkingSpotRepository.save(parkingSpot);
-
-        ParkingSession savedParkingSession =
-                parkingSessionRepository.save(parkingSession);
-
-        return toResponse(savedParkingSession);
-    }
-
-    /**
-     * Busca uma entidade de sessão pelo identificador.
-     */
+    // Retorna a entidade da sessão.
     public ParkingSession getEntity(UUID id) {
 
         return findParkingSessionById(id);
     }
 
-    /**
-     * Busca uma sessão pelo identificador.
-     */
+    // Retorna uma sessão pelo identificador.
     public ParkingSessionResponse getById(UUID id) {
 
         ParkingSession parkingSession = findParkingSessionById(id);
@@ -204,118 +128,86 @@ public class ParkingSessionService {
         return toResponse(parkingSession);
     }
 
-    /**
-     * Valida se a sessão está aberta.
-     */
-    public void validateOpenSession(ParkingSession parkingSession) {
+    // =====================================================
+    // SIMULAÇÃO
+    // =====================================================
+
+    // Valida se a sessão está ativa.
+    public void validateActiveSession(ParkingSession parkingSession) {
 
         if (parkingSession.getStatus() != StatusParkingSession.ACTIVE) {
             throw new ParkingAlreadyClosedException();
         }
-
     }
 
-    /**
-     * Valida se o veículo já possui uma sessão de estacionamento ativa.
-     */
+    // Valida se o veículo não possui uma sessão aberta.
     public void validateNoOpenSession(Vehicle vehicle) {
 
-        if (parkingSessionRepository.existsByVehicleIdAndStatusNot(
-                vehicle.getId(),
-                StatusParkingSession.FINISHED)) {
-
+        if (existsOpenSession(vehicle.getId())) {
             throw new OpenParkingSessionAlreadyExistsException();
         }
-
     }
 
-    /**
-     * Cria e persiste uma nova sessão de estacionamento.
-     */
-    public ParkingSession createSession(Vehicle vehicle, ParkingSpot parkingSpot) {
+    // Cria e persiste uma nova sessão de estacionamento.
+    public ParkingSession startEntering(Vehicle vehicle, ParkingSpot parkingSpot) {
 
-        ParkingSession parkingSession = toEntity(vehicle, parkingSpot);
+        ParkingSession parkingSession = requestToEntity(vehicle, parkingSpot);
 
         return parkingSessionRepository.save(parkingSession);
     }
 
-    /**
-     * Finaliza uma sessão de estacionamento.
-     */
-    public void closeSession(ParkingSession parkingSession) {
+    // Atualiza o status da sessão.
+    private void updateStatus(ParkingSession parkingSession, StatusParkingSession status) {
 
-        parkingSession.setExitTime(LocalDateTime.now());
-        parkingSession.setStatus(StatusParkingSession.FINISHED);
+        parkingSession.setStatus(status);
 
         parkingSessionRepository.save(parkingSession);
     }
 
-    /**
-     * Retorna todas as sessões de estacionamento ativas.
-     */
-    public List<ParkingSession> getActiveSessions() {
-
-        return parkingSessionRepository.findAllByStatus(
-                StatusParkingSession.ACTIVE
-        );
-    }
-
-    /**
-     * Verifica se o veículo possui
-     * uma sessão aberta.
-     *
-     * @param vehicleId identificador do veículo.
-     * @return true caso exista uma sessão aberta.
-     */
-    public boolean hasOpenSession(UUID vehicleId) {
-
-        return parkingSessionRepository
-                .existsByVehicleIdAndStatus(
-                        vehicleId,
-                        StatusParkingSession.ACTIVE
-                );
-    }
-
-    /**
-     * Libera uma vaga de estacionamento.
-     */
-    public void release(ParkingSpot parkingSpot) {
-
-        parkingSpot.setStatus(StatusParkingSpot.FREE);
-
-        parkingSpotRepository.save(parkingSpot);
-    }
-
-    /**
-     * Marca a sessão como estacionada.
-     */
+    // Marca a sessão como estacionada.
     public void park(ParkingSession parkingSession) {
 
-        parkingSession.setStatus(StatusParkingSession.ACTIVE);
-
-        parkingSessionRepository.save(parkingSession);
+        updateStatus(parkingSession, StatusParkingSession.ACTIVE);
     }
 
-    /**
-     * Marca a sessão como em processo de saída.
-     */
+    // Marca a sessão como em processo de saída.
     public void startExit(ParkingSession parkingSession) {
 
-        parkingSession.setStatus(StatusParkingSession.EXITING);
-
-        parkingSessionRepository.save(parkingSession);
+        updateStatus(parkingSession, StatusParkingSession.EXITING);
     }
 
-    /**
-     * Retorna todas as sessões que ainda
-     * estão procurando uma vaga.
-     */
+    // Finaliza uma sessão de estacionamento.
+    public void closeSession(
+            ParkingSession parkingSession,
+            LocalDateTime currentTime) {
+
+        parkingSession.setExitTime(currentTime);
+
+        updateStatus(parkingSession, StatusParkingSession.FINISHED);
+    }
+
+    // Retorna todas as sessões em processo de entrada.
     public List<ParkingSession> getEnteringSessions() {
 
-        return parkingSessionRepository.findByStatus(
-                StatusParkingSession.ENTERING
-        );
+        return parkingSessionRepository.findByStatus(StatusParkingSession.ENTERING);
     }
 
+    // Retorna todas as sessões ativas.
+    public List<ParkingSession> getActiveSessions() {
+
+        return parkingSessionRepository.findByStatus(StatusParkingSession.ACTIVE);
+    }
+
+    // Verifica se o veículo possui uma sessão aberta.
+    public boolean existsOpenSession(UUID vehicleId) {
+
+        return parkingSessionRepository.existsOpenSession(vehicleId);
+    }
+
+    // =====================================================
+    // RELATÓRIOS
+    // =====================================================
+
+    // Nenhum méto do por enquanto.
 
 }

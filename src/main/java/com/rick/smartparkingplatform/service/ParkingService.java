@@ -18,9 +18,11 @@ public class ParkingService {
 
     private final ParkingRepository parkingRepository;
 
-    /**
-     * Converte uma entidade Parking para o DTO de resposta.
-     */
+    // =====================================================
+    // API
+    // =====================================================
+
+    // Converte uma entidade Parking para o DTO de resposta.
     private ParkingResponse entityToResponse(Parking parking) {
 
         return new ParkingResponse(
@@ -35,9 +37,7 @@ public class ParkingService {
         );
     }
 
-    /**
-     * Validação para o horario de abertura não ser maior que a de fechamento.
-     */
+    // Valida se o horário de abertura é anterior ao horário de fechamento.
     private void validateOperatingHours(ParkingRequest request) {
 
         if (!request.openingTime().isBefore(request.closingTime())) {
@@ -46,37 +46,18 @@ public class ParkingService {
 
     }
 
-    /**
-     * Retorna o estacionamento cadastrado.
-     */
+    // Retorna o estacionamento cadastrado.
     public ParkingResponse getParking() {
 
-        Parking parking = parkingRepository
-                .findFirstByOrderByCreatedAtAsc()
-                .orElseThrow(ParkingNotFoundException::new);
+        Parking parking = parkingRepository.findFirstByOrderByCreatedAtAsc().orElseThrow(ParkingNotFoundException::new);
 
         return entityToResponse(parking);
     }
 
-    /**
-     * Retorna a entidade estacionamento cadastrado.
-     */
-    public Parking getCurrentParking() {
-
-        return parkingRepository
-                .findFirstByOrderByCreatedAtAsc()
-                .orElseThrow(ParkingNotFoundException::new);
-
-    }
-
-    /**
-     * Atualiza os dados do estacionamento.
-     */
+    // Atualiza os dados do estacionamento.
     public ParkingResponse update(UUID id, ParkingRequest request) {
 
-        Parking parking = parkingRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Parking with id " + id + " not found."));
+        Parking parking = parkingRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Parking with id " + id + " not found."));
 
         validateOperatingHours(request);
 
@@ -92,12 +73,28 @@ public class ParkingService {
         return entityToResponse(updatedParking);
     }
 
-    /**
-     * Verifica se o estacionamento já foi inicializado.
-     */
+    // =====================================================
+    // SIMULAÇÃO
+    // =====================================================
+
+    // Retorna a entidade do estacionamento utilizada pela simulação.
+    public Parking getCurrentParking() {
+
+        return parkingRepository.findFirstByOrderByCreatedAtAsc().orElseThrow(ParkingNotFoundException::new);
+
+    }
+
+    // Verifica se o estacionamento já foi inicializado.
     public boolean exists() {
 
         return parkingRepository.existsBy();
+
     }
+
+    // =====================================================
+    // RELATÓRIOS
+    // =====================================================
+
+    // Nenhum méto do por enquanto.
 
 }
