@@ -6,6 +6,7 @@ import com.rick.smartparkingplatform.entity.Vehicle;
 import com.rick.smartparkingplatform.enums.VehicleType;
 import com.rick.smartparkingplatform.exception.VehicleAlreadyExistsException;
 import com.rick.smartparkingplatform.exception.VehicleNotFoundException;
+import com.rick.smartparkingplatform.mapper.VehicleMapper;
 import com.rick.smartparkingplatform.repository.VehicleRepository;
 import com.rick.smartparkingplatform.simulation.parking.stay.StayProfile;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -22,37 +22,11 @@ import java.util.UUID;
 public class VehicleService {
 
     private final VehicleRepository vehicleRepository;
+    private final VehicleMapper mapper;
 
     // =====================================================
     // API
     // =====================================================
-
-    // Converte o DTO de requisição para uma entidade Vehicle.
-    private Vehicle requestToEntity(VehicleRequest request) {
-
-        Vehicle vehicle = new Vehicle();
-
-        vehicle.setLicensePlate(request.licensePlate());
-        vehicle.setType(request.type());
-        vehicle.setColor(request.color());
-        vehicle.setActive(true);
-        vehicle.setCreatedAt(LocalDateTime.now());
-
-        return vehicle;
-    }
-
-    // Converte uma entidade Vehicle para o DTO de resposta.
-    private VehicleResponse entityToResponse(Vehicle vehicle) {
-
-        return new VehicleResponse(
-                vehicle.getId(),
-                vehicle.getLicensePlate(),
-                vehicle.getType(),
-                vehicle.getColor(),
-                vehicle.isActive(),
-                vehicle.getCreatedAt()
-        );
-    }
 
     // Busca um veículo pelo identificador.
     private Vehicle findVehicleById(UUID id) {
@@ -63,7 +37,7 @@ public class VehicleService {
     // Lista todos os veículos cadastrados.
     public Page<VehicleResponse> findAll(Pageable pageable) {
 
-        return vehicleRepository.findAll(pageable).map(this::entityToResponse);
+        return vehicleRepository.findAll(pageable).map(mapper::toResponse);
     }
 
     // Retorna um veículo pelo identificador.
@@ -71,7 +45,7 @@ public class VehicleService {
 
         Vehicle vehicle = findVehicleById(id);
 
-        return entityToResponse(vehicle);
+        return mapper.toResponse(vehicle);
     }
 
     // Cadastra um novo veículo.
@@ -81,11 +55,11 @@ public class VehicleService {
             throw new VehicleAlreadyExistsException();
         }
 
-        Vehicle vehicle = requestToEntity(request);
+        Vehicle vehicle = mapper.toEntity(request);
 
         Vehicle savedVehicle = vehicleRepository.save(vehicle);
 
-        return entityToResponse(savedVehicle);
+        return mapper.toResponse(savedVehicle);
     }
 
     // Atualiza os dados de um veículo.
@@ -104,7 +78,7 @@ public class VehicleService {
 
         Vehicle updatedVehicle = vehicleRepository.save(vehicle);
 
-        return entityToResponse(updatedVehicle);
+        return mapper.toResponse(updatedVehicle);
     }
 
     // Desativa um veículo.
@@ -116,7 +90,7 @@ public class VehicleService {
 
         Vehicle updatedVehicle = vehicleRepository.save(vehicle);
 
-        return entityToResponse(updatedVehicle);
+        return mapper.toResponse(updatedVehicle);
     }
 
     // =====================================================
@@ -150,14 +124,12 @@ public class VehicleService {
             String color,
             StayProfile stayProfile) {
 
-        Vehicle vehicle = new Vehicle();
-
-        vehicle.setLicensePlate(licensePlate);
-        vehicle.setType(type);
-        vehicle.setColor(color);
-        vehicle.setStayProfile(stayProfile);
-        vehicle.setActive(true);
-        vehicle.setCreatedAt(LocalDateTime.now());
+        Vehicle vehicle = mapper.toGeneratedEntity(
+                licensePlate,
+                type,
+                color,
+                stayProfile
+        );
 
         return vehicleRepository.save(vehicle);
     }

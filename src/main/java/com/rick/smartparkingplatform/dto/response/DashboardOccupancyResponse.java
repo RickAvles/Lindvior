@@ -2,6 +2,7 @@ package com.rick.smartparkingplatform.dto.response;
 
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public record DashboardOccupancyResponse(
 
@@ -17,7 +18,11 @@ public record DashboardOccupancyResponse(
 
         Integer parkingQueue,
 
-        Integer exitQueue
+        Integer exitQueue,
+
+        List<GateResponse> entryGates,
+
+        List<GateResponse> exitGates
 
 ) {
 }

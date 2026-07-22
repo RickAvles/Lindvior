@@ -1,8 +1,8 @@
 package com.rick.smartparkingplatform.simulation.vehicle;
 
 import com.rick.smartparkingplatform.entity.Vehicle;
-import com.rick.smartparkingplatform.service.ParkingService;
 import com.rick.smartparkingplatform.service.ParkingSessionService;
+import com.rick.smartparkingplatform.service.ParkingSpotService;
 import com.rick.smartparkingplatform.service.VehicleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,7 +16,7 @@ public class VehicleSelectionManager {
     private static final int MAX_SELECTION_ATTEMPTS = 20;
 
     private final VehicleService vehicleService;
-    private final ParkingService parkingService;
+    private final ParkingSpotService parkingSpotService;
     private final ParkingSessionService parkingSessionService;
     private final GeneratedVehicleFactory generatedVehicleFactory;
 
@@ -35,9 +35,9 @@ public class VehicleSelectionManager {
     // Calcula a probabilidade de geração de um novo veículo.
     private double calculateNewVehicleProbability() {
 
-        long capacity = parkingService.getParking().capacity();
-
         long population = vehicleService.count();
+
+        long capacity = parkingSpotService.getCapacity();
 
         long threshold = capacity * 2L;
 

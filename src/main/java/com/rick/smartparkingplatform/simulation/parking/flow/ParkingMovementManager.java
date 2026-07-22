@@ -1,45 +1,60 @@
 package com.rick.smartparkingplatform.simulation.parking.flow;
 
-import com.rick.smartparkingplatform.simulation.queue.ParkingQueueService;
+import com.rick.smartparkingplatform.entity.ParkingSession;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
 public class ParkingMovementManager {
 
-    @Value("${simulation.parking.cooldown-seconds}")
-    private long cooldownSeconds;
+    private final Map<UUID, LocalDateTime> parkingSearches = new ConcurrentHashMap<>();
 
-    private final ParkingQueueService parkingQueueService;
+    // Inicia a procura por vaga.
+    public void startParkingSearch(
+            ParkingSession parkingSession,
+            LocalDateTime currentTime) {
 
-    private LocalDateTime nextAvailableParkingTime;
+        // Sorteia o tempo base da procura.
+        int baseTime = ThreadLocalRandom.current().nextInt(10, 21);
 
-    // Decide se um veículo pode finalizar o estacionamento.
-    public boolean isParkingBlocked(LocalDateTime currentTime) {
+        // Ajusta o tempo conforme o andar.
+        int floorMultiplier = Math.abs(
+                parkingSession.getParkingSpot()
+                        .getParkingSector()
+                        .getFloor()
+        ) + 1;
 
-        return !parkingQueueService.hasWaitingSessions()
-                || !isParkingAvailable(currentTime);
+        LocalDateTime finishTime = currentTime.plusSeconds(
+                (long) baseTime * floorMultiplier
+        );
+
+        parkingSearches.put(parkingSession.getId(), finishTime);
     }
 
-    // Registra um estacionamento e define o próximo instante disponível.
-    public void registerParking(LocalDateTime currentTime) {
+    // Verifica se a sessão concluiu a procura por vaga.
+    public boolean hasFinishedSearching(
+            ParkingSession parkingSession,
+            LocalDateTime currentTime) {
 
-        nextAvailableParkingTime =
-                currentTime.plusSeconds(cooldownSeconds);
+        LocalDateTime finishTime = parkingSearches.get(
+                parkingSession.getId()
+        );
+
+        return finishTime != null
+                && !currentTime.isBefore(finishTime);
     }
 
-    // Verifica se o fluxo de estacionamento está disponível.
-    private boolean isParkingAvailable(LocalDateTime currentTime) {
+    // Finaliza o controle da procura por vaga.
+    public void finishParkingSearch(ParkingSession parkingSession) {
 
-        if (nextAvailableParkingTime == null) {
-            return true;
-        }
-
-        return !currentTime.isBefore(nextAvailableParkingTime);
+        parkingSearches.remove(parkingSession.getId());
     }
 
 }

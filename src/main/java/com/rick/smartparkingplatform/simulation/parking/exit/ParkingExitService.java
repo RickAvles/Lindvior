@@ -1,28 +1,47 @@
 package com.rick.smartparkingplatform.simulation.parking.exit;
 
 import com.rick.smartparkingplatform.entity.ParkingSession;
+import com.rick.smartparkingplatform.service.ParkingSessionService;
+import com.rick.smartparkingplatform.service.ParkingSpotService;
 import com.rick.smartparkingplatform.simulation.engine.SimulationClock;
+import com.rick.smartparkingplatform.simulation.gate.ExitMovementManager;
+import com.rick.smartparkingplatform.simulation.gate.Gate;
 import com.rick.smartparkingplatform.simulation.log.SimulationLogger;
+import com.rick.smartparkingplatform.simulation.queue.ExitGateQueueService;
 import com.rick.smartparkingplatform.simulation.queue.ExitQueueService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class ParkingExitService {
 
+    // Exit
     private final ParkingExitManager parkingExitManager;
+
+    // Gate
     private final ExitQueueService exitQueueService;
+    private final ExitGateQueueService exitGateQueueService;
+    private final ExitMovementManager exitMovementManager;
+
+    // Domain
+    private final ParkingSpotService parkingSpotService;
+    private final ParkingSessionService parkingSessionService;
+
+    // Simulation
     private final SimulationClock simulationClock;
     private final SimulationLogger simulationLogger;
 
+    // Processa a saída de veículos.
     @Transactional
     public void process() {
 
         processExit();
+
+        processGateCrossing();
     }
 
     // Adiciona um veículo à fila de saída.
@@ -31,20 +50,69 @@ public class ParkingExitService {
         parkingExitManager.startExit(parkingSession);
     }
 
-    // Processa a fila de saída.
+    // Move um veículo da fila de saída para a cancela.
     private void processExit() {
 
-        LocalDateTime currentTime = simulationClock.getCurrentTime();
-
-        if (!parkingExitManager.canProcessExit(currentTime)) {
+        if (!exitQueueService.hasWaitingSessions()) {
             return;
         }
 
+        Optional<Gate> availableGate = parkingExitManager.getAvailableGate();
+
+        if (availableGate.isEmpty()) {
+            return;
+        }
+
+        Gate gate = availableGate.get();
+
         ParkingSession parkingSession = exitQueueService.dequeue();
 
-        simulationLogger.leave(parkingSession.getVehicle().getLicensePlate());
+        simulationLogger.leave(
+                parkingSession.getVehicle().getLicensePlate()
+        );
 
-        parkingExitManager.processExit(parkingSession, currentTime);
+        parkingSession.setExitGate(gate);
+
+        // Inicia o processamento da cancela.
+        exitMovementManager.startGateCrossing(
+                parkingSession,
+                gate,
+                simulationClock.getCurrentTime()
+        );
+
+        exitGateQueueService.enqueue(parkingSession);
+
+        // Inicia o cooldown da cancela utilizada.
+        parkingExitManager.startCooldown(
+                availableGate.get(),
+                simulationClock.getCurrentTime()
+        );
+    }
+
+    // Processa os veículos que terminaram de atravessar a cancela.
+    private void processGateCrossing() {
+
+        for (ParkingSession parkingSession : exitGateQueueService.getWaitingSessions()) {
+
+            if (!exitMovementManager.hasFinishedCrossing(
+                    parkingSession,
+                    simulationClock.getCurrentTime())) {
+                continue;
+            }
+
+            parkingSpotService.release(
+                    parkingSession.getParkingSpot()
+            );
+
+            parkingSessionService.closeSession(
+                    parkingSession,
+                    simulationClock.getCurrentTime()
+            );
+
+            exitMovementManager.finishGateCrossing(parkingSession, parkingSession.getExitGate());
+
+            exitGateQueueService.remove(parkingSession);
+        }
     }
 
 }

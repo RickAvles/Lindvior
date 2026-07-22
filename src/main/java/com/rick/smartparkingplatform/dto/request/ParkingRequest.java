@@ -17,7 +17,27 @@ public record ParkingRequest(
 
         @NotNull
         @Positive
-        Integer capacity,
+        Integer entryGates,
+
+        @NotNull
+        @Positive
+        Integer exitGates,
+
+        @NotNull
+        @Positive
+        Integer entryGateMinProcessingSeconds,
+
+        @NotNull
+        @Positive
+        Integer entryGateMaxProcessingSeconds,
+
+        @NotNull
+        @Positive
+        Integer exitGateMinProcessingSeconds,
+
+        @NotNull
+        @Positive
+        Integer exitGateMaxProcessingSeconds,
 
         @NotNull
         Boolean active,

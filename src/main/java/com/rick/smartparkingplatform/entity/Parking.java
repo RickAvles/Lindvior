@@ -18,32 +18,61 @@ import java.util.UUID;
 @Table(name = "parking")
 public class Parking {
 
+    // Identificador do estacionamento.
     @Id
     @GeneratedValue
     @UuidGenerator
     private UUID id;
 
+    // Nome do estacionamento.
     @Column(nullable = false)
     private String name;
 
+    // Endereço do estacionamento.
     @Column(nullable = false)
     private String address;
 
-    @Column(nullable = false)
-    private Integer capacity;
-
+    // Horário de abertura.
     @Column(nullable = false)
     private LocalTime openingTime;
 
+    // Horário de fechamento.
     @Column(nullable = false)
     private LocalTime closingTime;
 
+    // Quantidade de cancelas de entrada.
+    @Column(nullable = false)
+    private Integer entryGates;
+
+    // Quantidade de cancelas de saída.
+    @Column(nullable = false)
+    private Integer exitGates;
+
+    // Tempo mínimo da cancela de entrada.
+    @Column(nullable = false)
+    private Integer entryGateMinProcessingSeconds;
+
+    // Tempo máximo da cancela de entrada.
+    @Column(nullable = false)
+    private Integer entryGateMaxProcessingSeconds;
+
+    // Tempo mínimo da cancela de saída.
+    @Column(nullable = false)
+    private Integer exitGateMinProcessingSeconds;
+
+    // Tempo máximo da cancela de saída.
+    @Column(nullable = false)
+    private Integer exitGateMaxProcessingSeconds;
+
+    // Indica se o estacionamento está ativo.
     @Column(nullable = false)
     private boolean active = true;
 
+    // Data de criação.
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
+    // Setores do estacionamento.
     @OneToMany(mappedBy = "parking")
     private List<ParkingSector> parkingSectors;
 

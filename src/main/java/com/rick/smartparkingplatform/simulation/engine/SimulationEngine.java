@@ -1,7 +1,10 @@
 package com.rick.smartparkingplatform.simulation.engine;
 
+import com.rick.smartparkingplatform.entity.Parking;
 import com.rick.smartparkingplatform.service.ParkingService;
 import com.rick.smartparkingplatform.simulation.conditions.ConditionService;
+import com.rick.smartparkingplatform.simulation.gate.EntryGateManager;
+import com.rick.smartparkingplatform.simulation.gate.ExitGateManager;
 import com.rick.smartparkingplatform.simulation.operation.OperatingHoursService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,6 +23,9 @@ public class SimulationEngine {
     private final SimulationClock simulationClock;
     private final OperatingHoursService operatingHoursService;
     private final ParkingService parkingService;
+
+    private final EntryGateManager entryGateManager;
+    private final ExitGateManager exitGateManager;
 
     public void processTick() {
 
@@ -45,7 +51,12 @@ public class SimulationEngine {
             return;
         }
 
+        Parking parking = parkingService.getCurrentParking();
+
         conditionService.initialize();
+
+        entryGateManager.initialize(parking.getEntryGates());
+        exitGateManager.initialize(parking.getExitGates());
 
         initialized = true;
     }

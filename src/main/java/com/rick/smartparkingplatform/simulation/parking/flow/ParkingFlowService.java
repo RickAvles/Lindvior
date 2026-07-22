@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +31,7 @@ public class ParkingFlowService {
     private final SimulationClock simulationClock;
     private final SimulationLogger simulationLogger;
 
+    // Processa os veículos em deslocamento até a vaga.
     @Transactional
     public void process() {
 
@@ -38,26 +40,31 @@ public class ParkingFlowService {
         processParking(currentTime);
     }
 
-    // Processa o deslocamento do veículo até a vaga reservada.
+    // Processa o estacionamento dos veículos.
     private void processParking(LocalDateTime currentTime) {
 
-        if (parkingMovementManager.isParkingBlocked(currentTime)) {
-            return;
+        List<ParkingSession> sessions = parkingQueueService.getAll();
+
+        for (ParkingSession parkingSession : sessions) {
+
+            if (!parkingMovementManager.hasFinishedSearching(
+                    parkingSession,
+                    currentTime
+            )) {
+                continue;
+            }
+
+            parkingSpotService.occupy(parkingSession.getParkingSpot());
+
+            parkingSessionService.park(parkingSession);
+
+            parkingQueueService.remove(parkingSession);
+
+            parkingMovementManager.finishParkingSearch(parkingSession);
+
+            simulationLogger.entry(
+                    parkingSession.getVehicle().getLicensePlate()
+            );
         }
-
-        ParkingSession parkingSession = parkingQueueService.dequeue();
-
-        if (parkingSession == null) {
-            return;
-        }
-
-        parkingSpotService.occupy(parkingSession.getParkingSpot());
-
-        parkingSessionService.park(parkingSession);
-
-        simulationLogger.entry(parkingSession.getVehicle().getLicensePlate());
-
-        parkingMovementManager.registerParking(currentTime);
     }
-
 }

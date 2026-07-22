@@ -1,11 +1,11 @@
 package com.rick.smartparkingplatform.service;
 
-import com.rick.smartparkingplatform.dto.response.DashboardOccupancyResponse;
-import com.rick.smartparkingplatform.dto.response.DashboardResponse;
-import com.rick.smartparkingplatform.dto.response.DashboardSimulationResponse;
-import com.rick.smartparkingplatform.dto.response.OccupancyResponse;
+import com.rick.smartparkingplatform.dto.response.*;
 import com.rick.smartparkingplatform.simulation.conditions.ConditionService;
 import com.rick.smartparkingplatform.simulation.engine.SimulationClock;
+import com.rick.smartparkingplatform.simulation.gate.EntryGateManager;
+import com.rick.smartparkingplatform.simulation.gate.ExitGateManager;
+import com.rick.smartparkingplatform.simulation.gate.Gate;
 import com.rick.smartparkingplatform.simulation.operation.OperatingHoursService;
 import com.rick.smartparkingplatform.simulation.operation.SimulationState;
 import com.rick.smartparkingplatform.simulation.queue.EntryQueueService;
@@ -15,24 +15,28 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class DashboardService {
 
+    // Serviços da simulação.
     private final SimulationClock simulationClock;
     private final OperatingHoursService operatingHoursService;
-    private final ParkingSpotService parkingSpotService;
-    private final EntryQueueService entryQueueService;
     private final ConditionService conditionService;
 
+    // Serviços de ocupação.
+    private final ParkingSpotService parkingSpotService;
+    private final EntryQueueService entryQueueService;
     private final ParkingQueueService parkingQueueService;
-
     private final ExitQueueService exitQueueService;
 
-    /**
-     * Converte os dados da simulação para o DTO de resposta.
-     */
+    // Gerenciadores das cancelas.
+    private final EntryGateManager entryGateManager;
+    private final ExitGateManager exitGateManager;
+
+    // Converte os dados da simulação.
     private DashboardSimulationResponse toSimulationResponse(
             LocalDateTime currentTime,
             SimulationState simulationState) {
@@ -43,11 +47,35 @@ public class DashboardService {
                 conditionService.getCurrentDayType(),
                 conditionService.getCurrentWeather()
         );
+
     }
 
-    /**
-     * Converte os dados de ocupação para o DTO de resposta.
-     */
+    // Converte as cancelas para o dashboard.
+    private List<GateResponse> toGateResponse(
+            List<Gate> gates,
+            String prefix) {
+
+        return gates.stream()
+                .map(gate -> {
+
+                    String vehiclePlate = "";
+
+                    if (gate.getCurrentSession() != null) {
+                        vehiclePlate = gate.getCurrentSession()
+                                .getVehicle()
+                                .getLicensePlate();
+                    }
+
+                    return new GateResponse(
+                            prefix + gate.getNumber(),
+                            gate.isAvailable(simulationClock.getCurrentTime()),
+                            vehiclePlate
+                    );
+                })
+                .toList();
+    }
+
+    // Converte os dados de ocupação.
     private DashboardOccupancyResponse toOccupancyResponse(
             OccupancyResponse occupancy) {
 
@@ -58,13 +86,20 @@ public class DashboardService {
                 occupancy.occupancyRate(),
                 entryQueueService.size(),
                 parkingQueueService.size(),
-                exitQueueService.size()
+                exitQueueService.size(),
+                toGateResponse(
+                        entryGateManager.getGates(),
+                        "E"
+                ),
+                toGateResponse(
+                        exitGateManager.getGates(),
+                        "S"
+                )
         );
+
     }
 
-    /**
-     * Retorna o resumo operacional utilizado pelo dashboard.
-     */
+    // Retorna os dados do dashboard.
     public DashboardResponse getDashboard() {
 
         LocalDateTime currentTime =
@@ -85,6 +120,7 @@ public class DashboardService {
                         occupancy
                 )
         );
+
     }
 
 }

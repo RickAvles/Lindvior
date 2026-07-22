@@ -15,12 +15,13 @@ public class RecoveryService {
     private final RecoveryManager recoveryManager;
     private final RecoveryRestoreService recoveryRestoreService;
 
+
     // Inicializa o período de recuperação e restaura as sessões pendentes.
     @PostConstruct
     public void startRecovery() {
 
         recoveryManager.startRecovery();
-        recoveryRestoreService.restoreEnteringSessions();
+        recoveryRestoreService.restoreSessions();
     }
 
     // Retorna a curva de recuperação quando aplicável.

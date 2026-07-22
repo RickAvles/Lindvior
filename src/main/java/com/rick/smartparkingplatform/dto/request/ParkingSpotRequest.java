@@ -1,5 +1,6 @@
 package com.rick.smartparkingplatform.dto.request;
 
+import com.rick.smartparkingplatform.enums.ParkingSpotType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -11,7 +12,10 @@ public record ParkingSpotRequest(
         String code,
 
         @NotNull
-        UUID parkingSectorId
+        UUID parkingSectorId,
+
+        @NotNull
+        ParkingSpotType type
 
 ) {
 }
