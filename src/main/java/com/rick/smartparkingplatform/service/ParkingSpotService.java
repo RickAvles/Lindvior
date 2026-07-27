@@ -13,6 +13,7 @@ import com.rick.smartparkingplatform.exception.ResourceNotFoundException;
 import com.rick.smartparkingplatform.mapper.ParkingSpotMapper;
 import com.rick.smartparkingplatform.repository.ParkingSectorRepository;
 import com.rick.smartparkingplatform.repository.ParkingSpotRepository;
+import com.rick.smartparkingplatform.simulation.metrics.statistics.ParkingOccupancy;
 import com.rick.smartparkingplatform.specification.ParkingSpotSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -188,14 +189,14 @@ public class ParkingSpotService {
     // RELATÓRIOS
     // =====================================================
 
-    // Constrói a resposta de ocupação do estacionamento.
-    private OccupancyResponse toOccupancy(
-            Long totalSpots,
-            Long availableSpots,
-            Long occupiedSpots,
+    // Constrói o estado de ocupação do estacionamento.
+    private ParkingOccupancy toParkingOccupancy(
+            long totalSpots,
+            long availableSpots,
+            long occupiedSpots,
             BigDecimal occupancyRate) {
 
-        return new OccupancyResponse(
+        return new ParkingOccupancy(
                 totalSpots,
                 availableSpots,
                 occupiedSpots,
@@ -203,48 +204,61 @@ public class ParkingSpotService {
         );
     }
 
-    // Calcula a ocupação atual do estacionamento.
-    public OccupancyResponse getOccupancy() {
+    // Calcula o estado atual de ocupação do estacionamento.
+    public ParkingOccupancy getParkingOccupancy() {
 
-        Long totalSpots = parkingSpotRepository.countByActiveTrue();
+        long totalSpots = parkingSpotRepository.countByActiveTrue();
 
         if (totalSpots == 0) {
-            return toOccupancy(
-                    0L,
-                    0L,
-                    0L,
+            return toParkingOccupancy(
+                    0,
+                    0,
+                    0,
                     BigDecimal.ZERO
             );
         }
 
-        Long availableSpots =
+        long availableSpots =
                 parkingSpotRepository.countByStatusAndActiveTrue(
                         StatusParkingSpot.FREE
                 );
 
-        Long reservedSpots =
+        long reservedSpots =
                 parkingSpotRepository.countByStatusAndActiveTrue(
                         StatusParkingSpot.RESERVED
                 );
 
-        Long occupiedSpots =
+        long occupiedSpots =
                 parkingSpotRepository.countByStatusAndActiveTrue(
                         StatusParkingSpot.OCCUPIED
                 );
 
-        Long unavailableSpots = reservedSpots + occupiedSpots;
+        long unavailableSpots = reservedSpots + occupiedSpots;
 
         double occupancy =
-                (unavailableSpots.doubleValue() / totalSpots.doubleValue()) * 100;
+                ((double) unavailableSpots / (double) totalSpots) * 100;
 
         BigDecimal occupancyRate = BigDecimal.valueOf(occupancy)
                 .setScale(2, RoundingMode.HALF_UP);
 
-        return toOccupancy(
+        return toParkingOccupancy(
                 totalSpots,
                 availableSpots,
                 unavailableSpots,
                 occupancyRate
+        );
+    }
+
+    // Calcula a ocupação atual do estacionamento.
+    public OccupancyResponse getOccupancy() {
+
+        ParkingOccupancy occupancy = getParkingOccupancy();
+
+        return new OccupancyResponse(
+                occupancy.totalSpots(),
+                occupancy.availableSpots(),
+                occupancy.occupiedSpots(),
+                occupancy.occupancyRate()
         );
     }
 

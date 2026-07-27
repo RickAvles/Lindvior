@@ -7,12 +7,16 @@ import com.rick.smartparkingplatform.simulation.engine.SimulationClock;
 import com.rick.smartparkingplatform.simulation.gate.ExitMovementManager;
 import com.rick.smartparkingplatform.simulation.gate.Gate;
 import com.rick.smartparkingplatform.simulation.log.SimulationLogger;
+import com.rick.smartparkingplatform.simulation.metrics.session.SessionMetrics;
+import com.rick.smartparkingplatform.simulation.metrics.session.SessionMetricsService;
+import com.rick.smartparkingplatform.simulation.metrics.statistics.SimulationStatisticsService;
 import com.rick.smartparkingplatform.simulation.queue.ExitGateQueueService;
 import com.rick.smartparkingplatform.simulation.queue.ExitQueueService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.Optional;
 
 @Service
@@ -31,6 +35,10 @@ public class ParkingExitService {
     private final ParkingSpotService parkingSpotService;
     private final ParkingSessionService parkingSessionService;
 
+    // Metrics
+    private final SimulationStatisticsService simulationStatisticsService;
+    private final SessionMetricsService sessionMetricsService;
+
     // Simulation
     private final SimulationClock simulationClock;
     private final SimulationLogger simulationLogger;
@@ -46,6 +54,13 @@ public class ParkingExitService {
 
     // Adiciona um veículo à fila de saída.
     public void startExit(ParkingSession parkingSession) {
+
+        SessionMetrics sessionMetrics =
+                sessionMetricsService.get(parkingSession);
+
+        sessionMetrics.setExitQueueAt(
+                simulationClock.getCurrentTime()
+        );
 
         parkingExitManager.startExit(parkingSession);
     }
@@ -84,7 +99,7 @@ public class ParkingExitService {
 
         // Inicia o cooldown da cancela utilizada.
         parkingExitManager.startCooldown(
-                availableGate.get(),
+                gate,
                 simulationClock.getCurrentTime()
         );
     }
@@ -109,7 +124,38 @@ public class ParkingExitService {
                     simulationClock.getCurrentTime()
             );
 
-            exitMovementManager.finishGateCrossing(parkingSession, parkingSession.getExitGate());
+            SessionMetrics sessionMetrics =
+                    sessionMetricsService.get(parkingSession);
+
+            sessionMetrics.setFinishedAt(
+                    simulationClock.getCurrentTime()
+            );
+
+            if (sessionMetrics.getExitQueueAt() != null) {
+
+                simulationStatisticsService.recordExitWait(
+                        Duration.between(
+                                sessionMetrics.getExitQueueAt(),
+                                sessionMetrics.getFinishedAt()
+                        )
+                );
+            }
+
+            simulationStatisticsService.recordStay(
+                    Duration.between(
+                            parkingSession.getEntryTime(),
+                            parkingSession.getExitTime()
+                    )
+            );
+
+            simulationStatisticsService.recordExit();
+
+            sessionMetricsService.remove(parkingSession);
+
+            exitMovementManager.finishGateCrossing(
+                    parkingSession,
+                    parkingSession.getExitGate()
+            );
 
             exitGateQueueService.remove(parkingSession);
         }

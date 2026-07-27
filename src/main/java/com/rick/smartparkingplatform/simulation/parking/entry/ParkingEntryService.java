@@ -8,6 +8,9 @@ import com.rick.smartparkingplatform.service.ParkingSpotService;
 import com.rick.smartparkingplatform.simulation.engine.SimulationClock;
 import com.rick.smartparkingplatform.simulation.gate.EntryMovementManager;
 import com.rick.smartparkingplatform.simulation.gate.Gate;
+import com.rick.smartparkingplatform.simulation.metrics.session.SessionMetrics;
+import com.rick.smartparkingplatform.simulation.metrics.session.SessionMetricsService;
+import com.rick.smartparkingplatform.simulation.metrics.statistics.SimulationStatisticsService;
 import com.rick.smartparkingplatform.simulation.parking.flow.ParkingMovementManager;
 import com.rick.smartparkingplatform.simulation.queue.EntryGateQueueService;
 import com.rick.smartparkingplatform.simulation.queue.EntryQueueService;
@@ -16,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.Optional;
 
 @Service
@@ -42,6 +46,8 @@ public class ParkingEntryService {
 
     // Simulation
     private final SimulationClock simulationClock;
+    private final SimulationStatisticsService simulationStatisticsService;
+    private final SessionMetricsService sessionMetricsService;
 
     // Processa a entrada de veículos.
     @Transactional
@@ -94,8 +100,15 @@ public class ParkingEntryService {
                 parkingSpot
         );
 
+        sessionMetricsService.startSession(
+                parkingSession,
+                simulationClock.getCurrentTime()
+        );
+
+        simulationStatisticsService.recordEntry();
+
         Gate gate = availableGate.get();
-        
+
         parkingSession.setEntryGate(gate);
 
         // Inicia o tempo de processamento da cancela.
@@ -108,7 +121,7 @@ public class ParkingEntryService {
         entryGateQueueService.enqueue(parkingSession);
 
         // Inicia o cooldown da cancela utilizada.
-        entryFlowManager.startCooldown(availableGate.get());
+        entryFlowManager.startCooldown(gate);
     }
 
     // Processa os veículos que terminaram de atravessar a cancela.
@@ -120,6 +133,23 @@ public class ParkingEntryService {
                     parkingSession,
                     simulationClock.getCurrentTime())) {
                 continue;
+            }
+
+            SessionMetrics sessionMetrics =
+                    sessionMetricsService.get(parkingSession);
+
+            sessionMetrics.setEntryGateAt(
+                    simulationClock.getCurrentTime()
+            );
+
+            if (sessionMetrics.getEntryQueueAt() != null) {
+
+                simulationStatisticsService.recordEntryWait(
+                        Duration.between(
+                                sessionMetrics.getEntryQueueAt(),
+                                sessionMetrics.getEntryGateAt()
+                        )
+                );
             }
 
             // Inicia o deslocamento até a vaga.

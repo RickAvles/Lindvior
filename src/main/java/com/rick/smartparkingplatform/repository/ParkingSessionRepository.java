@@ -32,4 +32,6 @@ public interface ParkingSessionRepository extends JpaRepository<ParkingSession, 
     boolean existsOpenSession(UUID vehicleId);
 
     List<ParkingSession> findByStatus(StatusParkingSession status);
+
+    long countByStatus(StatusParkingSession status);
 }

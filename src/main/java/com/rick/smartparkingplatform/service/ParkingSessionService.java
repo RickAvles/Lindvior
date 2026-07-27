@@ -186,6 +186,30 @@ public class ParkingSessionService {
         return parkingSessionRepository.existsOpenSession(vehicleId);
     }
 
+    // Retorna a quantidade de sessões em processo de entrada.
+    public long countEnteringSessions() {
+
+        return parkingSessionRepository.countByStatus(StatusParkingSession.ENTERING);
+    }
+
+    // Retorna a quantidade de sessões ativas.
+    public long countActiveSessions() {
+
+        return parkingSessionRepository.countByStatus(StatusParkingSession.ACTIVE);
+    }
+
+    // Retorna a quantidade de sessões em processo de saída.
+    public long countExitingSessions() {
+
+        return parkingSessionRepository.countByStatus(StatusParkingSession.EXITING);
+    }
+
+    // Retorna a quantidade de sessões finalizadas.
+    public long countCompletedSessions() {
+
+        return parkingSessionRepository.countByStatus(StatusParkingSession.FINISHED);
+    }
+
 
     // =====================================================
     // RELATÓRIOS

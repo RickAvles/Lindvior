@@ -1,126 +1,75 @@
 package com.rick.smartparkingplatform.service;
 
-import com.rick.smartparkingplatform.dto.response.*;
-import com.rick.smartparkingplatform.simulation.conditions.ConditionService;
-import com.rick.smartparkingplatform.simulation.engine.SimulationClock;
-import com.rick.smartparkingplatform.simulation.gate.EntryGateManager;
-import com.rick.smartparkingplatform.simulation.gate.ExitGateManager;
-import com.rick.smartparkingplatform.simulation.gate.Gate;
-import com.rick.smartparkingplatform.simulation.operation.OperatingHoursService;
-import com.rick.smartparkingplatform.simulation.operation.SimulationState;
-import com.rick.smartparkingplatform.simulation.queue.EntryQueueService;
-import com.rick.smartparkingplatform.simulation.queue.ExitQueueService;
-import com.rick.smartparkingplatform.simulation.queue.ParkingQueueService;
+import com.rick.smartparkingplatform.dto.response.DashboardOccupancyResponse;
+import com.rick.smartparkingplatform.dto.response.DashboardResponse;
+import com.rick.smartparkingplatform.dto.response.DashboardSimulationResponse;
+import com.rick.smartparkingplatform.dto.response.GateResponse;
+import com.rick.smartparkingplatform.simulation.metrics.dashboard.SimulationMetrics;
+import com.rick.smartparkingplatform.simulation.metrics.dashboard.SimulationMetricsService;
+import com.rick.smartparkingplatform.simulation.metrics.statistics.GateMetrics;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class DashboardService {
 
-    // Serviços da simulação.
-    private final SimulationClock simulationClock;
-    private final OperatingHoursService operatingHoursService;
-    private final ConditionService conditionService;
+    private final SimulationMetricsService simulationMetricsService;
 
-    // Serviços de ocupação.
-    private final ParkingSpotService parkingSpotService;
-    private final EntryQueueService entryQueueService;
-    private final ParkingQueueService parkingQueueService;
-    private final ExitQueueService exitQueueService;
+    // Converte as métricas das cancelas para a resposta da API.
+    private List<GateResponse> toGateResponse(List<GateMetrics> gates) {
 
-    // Gerenciadores das cancelas.
-    private final EntryGateManager entryGateManager;
-    private final ExitGateManager exitGateManager;
+        return gates.stream()
+                .map(gate -> new GateResponse(
+                        gate.gate(),
+                        gate.available(),
+                        gate.vehiclePlate()
+                ))
+                .toList();
+    }
 
     // Converte os dados da simulação.
     private DashboardSimulationResponse toSimulationResponse(
-            LocalDateTime currentTime,
-            SimulationState simulationState) {
+            SimulationMetrics metrics) {
 
         return new DashboardSimulationResponse(
-                currentTime,
-                simulationState,
-                conditionService.getCurrentDayType(),
-                conditionService.getCurrentWeather()
+                metrics.currentTime(),
+                metrics.simulationState(),
+                metrics.currentDayType(),
+                metrics.currentWeather()
         );
-
-    }
-
-    // Converte as cancelas para o dashboard.
-    private List<GateResponse> toGateResponse(
-            List<Gate> gates,
-            String prefix) {
-
-        return gates.stream()
-                .map(gate -> {
-
-                    String vehiclePlate = "";
-
-                    if (gate.getCurrentSession() != null) {
-                        vehiclePlate = gate.getCurrentSession()
-                                .getVehicle()
-                                .getLicensePlate();
-                    }
-
-                    return new GateResponse(
-                            prefix + gate.getNumber(),
-                            gate.isAvailable(simulationClock.getCurrentTime()),
-                            vehiclePlate
-                    );
-                })
-                .toList();
     }
 
     // Converte os dados de ocupação.
     private DashboardOccupancyResponse toOccupancyResponse(
-            OccupancyResponse occupancy) {
+            SimulationMetrics metrics) {
 
         return new DashboardOccupancyResponse(
-                occupancy.totalSpots(),
-                occupancy.availableSpots(),
-                occupancy.occupiedSpots(),
-                occupancy.occupancyRate(),
-                entryQueueService.size(),
-                parkingQueueService.size(),
-                exitQueueService.size(),
-                toGateResponse(
-                        entryGateManager.getGates(),
-                        "E"
-                ),
-                toGateResponse(
-                        exitGateManager.getGates(),
-                        "S"
-                )
+                metrics.totalSpots(),
+                metrics.availableSpots(),
+                metrics.occupiedSpots(),
+                metrics.occupancyRate(),
+                metrics.entryQueue(),
+                metrics.parkingQueue(),
+                metrics.exitQueue(),
+                toGateResponse(metrics.entryGates()),
+                toGateResponse(metrics.exitGates())
         );
-
     }
+
 
     // Retorna os dados do dashboard.
     public DashboardResponse getDashboard() {
 
-        LocalDateTime currentTime =
-                simulationClock.getCurrentTime();
-
-        SimulationState simulationState =
-                operatingHoursService.getCurrentState(currentTime);
-
-        OccupancyResponse occupancy =
-                parkingSpotService.getOccupancy();
+        SimulationMetrics metrics =
+                simulationMetricsService.getCurrentMetrics();
 
         return new DashboardResponse(
-                toSimulationResponse(
-                        currentTime,
-                        simulationState
-                ),
-                toOccupancyResponse(
-                        occupancy
-                )
+                toSimulationResponse(metrics),
+                toOccupancyResponse(metrics)
         );
-
     }
 
 }
