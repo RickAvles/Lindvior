@@ -1,29 +1,39 @@
 package com.rick.smartparkingplatform.simulation.parking.exit;
 
+import com.rick.smartparkingplatform.entity.Parking;
 import com.rick.smartparkingplatform.entity.ParkingSession;
+import com.rick.smartparkingplatform.service.ParkingService;
 import com.rick.smartparkingplatform.service.ParkingSessionService;
-import com.rick.smartparkingplatform.service.ParkingSpotService;
+import com.rick.smartparkingplatform.simulation.engine.SimulationClock;
+import com.rick.smartparkingplatform.simulation.gate.ExitGateManager;
+import com.rick.smartparkingplatform.simulation.gate.Gate;
 import com.rick.smartparkingplatform.simulation.queue.ExitQueueService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
 public class ParkingExitManager {
 
-    @Value("${simulation.exit.cooldown-seconds}")
-    private long cooldownSeconds;
-
-    private LocalDateTime nextAvailableExitTime = LocalDateTime.MIN;
-
-    private final ParkingSpotService parkingSpotService;
     private final ParkingSessionService parkingSessionService;
     private final ExitQueueService exitQueueService;
+    private final ParkingService parkingService;
+    private final ExitGateManager exitGateManager;
+    private final SimulationClock simulationClock;
 
-    // Inicia o processo de saída do veículo.
+    // Retorna uma cancela disponível para processamento.
+    public Optional<Gate> getAvailableGate() {
+
+        return exitGateManager.getAvailableGate(
+                simulationClock.getCurrentTime()
+        );
+    }
+
+    // Adiciona um veículo à fila de saída.
     public void startExit(ParkingSession parkingSession) {
 
         parkingSessionService.validateActiveSession(parkingSession);
@@ -33,27 +43,21 @@ public class ParkingExitManager {
         exitQueueService.enqueue(parkingSession);
     }
 
-    // Decide se uma saída pode ser processada.
-    public boolean canProcessExit(LocalDateTime currentTime) {
+    // Inicia um novo período de cooldown da cancela.
+    public void startCooldown(Gate gate, LocalDateTime currentTime) {
 
-        return exitQueueService.hasWaitingSessions()
-                && !currentTime.isBefore(nextAvailableExitTime);
-    }
+        Parking parking = parkingService.getCurrentParking();
 
-    // Finaliza a saída do veículo.
-    public void processExit(ParkingSession parkingSession, LocalDateTime currentTime) {
+        int cooldown = ThreadLocalRandom.current().nextInt(
+                parking.getExitGateMinProcessingSeconds(),
+                parking.getExitGateMaxProcessingSeconds() + 1
+        );
 
-        parkingSpotService.release(parkingSession.getParkingSpot());
-
-        parkingSessionService.closeSession(parkingSession, currentTime);
-
-        startCooldown(currentTime);
-    }
-
-    // Inicia um novo período de cooldown da saída.
-    private void startCooldown(LocalDateTime currentTime) {
-
-        nextAvailableExitTime = currentTime.plusSeconds(cooldownSeconds);
+        exitGateManager.startCooldown(
+                gate,
+                currentTime,
+                cooldown
+        );
     }
 
 }

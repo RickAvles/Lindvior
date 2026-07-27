@@ -1,6 +1,6 @@
 package com.rick.smartparkingplatform.dto.request;
 
-import com.rick.smartparkingplatform.enums.SectorType;
+import com.rick.smartparkingplatform.enums.ParkingSectorType;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -12,7 +12,7 @@ public record ParkingSectorRequest(
         String name,
 
         @NotNull
-        SectorType type,
+        ParkingSectorType type,
 
         @NotNull
         @Min(-5)

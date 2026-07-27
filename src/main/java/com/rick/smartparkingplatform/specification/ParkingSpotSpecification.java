@@ -1,7 +1,8 @@
 package com.rick.smartparkingplatform.specification;
 
 import com.rick.smartparkingplatform.entity.ParkingSpot;
-import com.rick.smartparkingplatform.enums.SectorType;
+import com.rick.smartparkingplatform.enums.ParkingSectorType;
+import com.rick.smartparkingplatform.enums.ParkingSpotType;
 import com.rick.smartparkingplatform.enums.StatusParkingSpot;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -12,10 +13,7 @@ public class ParkingSpotSpecification {
      */
     public static Specification<ParkingSpot> hasSector(String sector) {
         return (root, query, builder) ->
-                builder.equal(
-                        root.join("parkingSector").get("name"),
-                        sector
-                );
+                builder.equal(root.join("parkingSector").get("name"), sector);
     }
 
     /**
@@ -23,10 +21,7 @@ public class ParkingSpotSpecification {
      */
     public static Specification<ParkingSpot> hasFloor(Integer floor) {
         return (root, query, builder) ->
-                builder.equal(
-                        root.join("parkingSector").get("floor"),
-                        floor
-                );
+                builder.equal(root.join("parkingSector").get("floor"), floor);
     }
 
     /**
@@ -46,14 +41,19 @@ public class ParkingSpotSpecification {
     }
 
     /**
+     * Filtra vagas pelo estado de ativação.
+     */
+    public static Specification<ParkingSpot> hasSpotType(ParkingSpotType type) {
+        return (root, query, builder) ->
+                builder.equal(root.get("type"), type);
+    }
+
+    /**
      * Filtra vagas pelo setor.
      */
-    public static Specification<ParkingSpot> hasSectorType(SectorType type) {
+    public static Specification<ParkingSpot> hasSectorType(ParkingSectorType type) {
         return (root, query, builder) ->
-                builder.equal(
-                        root.join("parkingSector").get("type"),
-                        type
-                );
+                builder.equal(root.join("parkingSector").get("type"), type);
     }
 
 }

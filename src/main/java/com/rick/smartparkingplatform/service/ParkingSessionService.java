@@ -9,6 +9,7 @@ import com.rick.smartparkingplatform.enums.StatusParkingSession;
 import com.rick.smartparkingplatform.exception.OpenParkingSessionAlreadyExistsException;
 import com.rick.smartparkingplatform.exception.ParkingAlreadyClosedException;
 import com.rick.smartparkingplatform.exception.ResourceNotFoundException;
+import com.rick.smartparkingplatform.mapper.ParkingSessionMapper;
 import com.rick.smartparkingplatform.repository.ParkingSessionRepository;
 import com.rick.smartparkingplatform.specification.ParkingSessionSpecification;
 import lombok.RequiredArgsConstructor;
@@ -26,41 +27,11 @@ import java.util.UUID;
 public class ParkingSessionService {
 
     private final ParkingSessionRepository parkingSessionRepository;
+    private final ParkingSessionMapper mapper;
 
     // =====================================================
     // API
     // =====================================================
-
-    // Converte os dados necessários para uma entidade ParkingSession.
-    private ParkingSession requestToEntity(Vehicle vehicle, ParkingSpot parkingSpot) {
-
-        ParkingSession parkingSession = new ParkingSession();
-
-        LocalDateTime now = LocalDateTime.now();
-
-        parkingSession.setVehicle(vehicle);
-        parkingSession.setParkingSpot(parkingSpot);
-        parkingSession.setEntryTime(now);
-        parkingSession.setCreatedAt(now);
-        parkingSession.setStatus(StatusParkingSession.ENTERING);
-
-        return parkingSession;
-    }
-
-    // Converte uma entidade ParkingSession para o DTO de resposta.
-    private ParkingSessionResponse toResponse(ParkingSession session) {
-
-        return new ParkingSessionResponse(
-                session.getId(),
-                session.getVehicle().getLicensePlate(),
-                session.getVehicle().getType(),
-                session.getEntryTime(),
-                session.getExitTime(),
-                session.getStatus(),
-                session.getParkingSpot().getCode(),
-                session.getCreatedAt()
-        );
-    }
 
     // Monta dinamicamente os filtros da consulta.
     private Specification<ParkingSession> buildSpecification(ParkingSessionFilter filter) {
@@ -111,7 +82,7 @@ public class ParkingSessionService {
 
         Specification<ParkingSession> specification = buildSpecification(filter);
 
-        return parkingSessionRepository.findAll(specification, pageable).map(this::toResponse);
+        return parkingSessionRepository.findAll(specification, pageable).map(mapper::toResponse);
     }
 
     // Retorna a entidade da sessão.
@@ -125,7 +96,7 @@ public class ParkingSessionService {
 
         ParkingSession parkingSession = findParkingSessionById(id);
 
-        return toResponse(parkingSession);
+        return mapper.toResponse(parkingSession);
     }
 
     // =====================================================
@@ -151,7 +122,7 @@ public class ParkingSessionService {
     // Cria e persiste uma nova sessão de estacionamento.
     public ParkingSession startEntering(Vehicle vehicle, ParkingSpot parkingSpot) {
 
-        ParkingSession parkingSession = requestToEntity(vehicle, parkingSpot);
+        ParkingSession parkingSession = mapper.toEntity(vehicle, parkingSpot);
 
         return parkingSessionRepository.save(parkingSession);
     }
@@ -166,6 +137,12 @@ public class ParkingSessionService {
 
     // Marca a sessão como estacionada.
     public void park(ParkingSession parkingSession) {
+
+        updateStatus(parkingSession, StatusParkingSession.ACTIVE);
+    }
+
+    // Traz uma sessão não concluida de volta para ativa.
+    public void restoreActive(ParkingSession parkingSession) {
 
         updateStatus(parkingSession, StatusParkingSession.ACTIVE);
     }
@@ -192,6 +169,11 @@ public class ParkingSessionService {
         return parkingSessionRepository.findByStatus(StatusParkingSession.ENTERING);
     }
 
+    public List<ParkingSession> getExitingSessions() {
+
+        return parkingSessionRepository.findByStatus(StatusParkingSession.EXITING);
+    }
+
     // Retorna todas as sessões ativas.
     public List<ParkingSession> getActiveSessions() {
 
@@ -203,6 +185,31 @@ public class ParkingSessionService {
 
         return parkingSessionRepository.existsOpenSession(vehicleId);
     }
+
+    // Retorna a quantidade de sessões em processo de entrada.
+    public long countEnteringSessions() {
+
+        return parkingSessionRepository.countByStatus(StatusParkingSession.ENTERING);
+    }
+
+    // Retorna a quantidade de sessões ativas.
+    public long countActiveSessions() {
+
+        return parkingSessionRepository.countByStatus(StatusParkingSession.ACTIVE);
+    }
+
+    // Retorna a quantidade de sessões em processo de saída.
+    public long countExitingSessions() {
+
+        return parkingSessionRepository.countByStatus(StatusParkingSession.EXITING);
+    }
+
+    // Retorna a quantidade de sessões finalizadas.
+    public long countCompletedSessions() {
+
+        return parkingSessionRepository.countByStatus(StatusParkingSession.FINISHED);
+    }
+
 
     // =====================================================
     // RELATÓRIOS

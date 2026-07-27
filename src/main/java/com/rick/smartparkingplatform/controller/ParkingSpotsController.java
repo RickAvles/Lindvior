@@ -4,7 +4,8 @@ import com.rick.smartparkingplatform.dto.filter.ParkingSpotFilter;
 import com.rick.smartparkingplatform.dto.request.ParkingSpotRequest;
 import com.rick.smartparkingplatform.dto.response.OccupancyResponse;
 import com.rick.smartparkingplatform.dto.response.ParkingSpotResponse;
-import com.rick.smartparkingplatform.enums.SectorType;
+import com.rick.smartparkingplatform.enums.ParkingSectorType;
+import com.rick.smartparkingplatform.enums.ParkingSpotType;
 import com.rick.smartparkingplatform.enums.StatusParkingSpot;
 import com.rick.smartparkingplatform.service.ParkingSpotService;
 import jakarta.validation.Valid;
@@ -33,7 +34,8 @@ public class ParkingSpotsController {
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "20") Integer size,
             @RequestParam(required = false) String sector,
-            @RequestParam(required = false) SectorType sectorType,
+            @RequestParam(required = false) ParkingSpotType parkingSpotType,
+            @RequestParam(required = false) ParkingSectorType parkingSectorType,
             @RequestParam(required = false) Integer floor,
             @RequestParam(required = false) StatusParkingSpot status,
             @RequestParam(required = false) Boolean active) {
@@ -42,7 +44,8 @@ public class ParkingSpotsController {
 
         ParkingSpotFilter filter = new ParkingSpotFilter(
                 sector,
-                sectorType,
+                parkingSpotType,
+                parkingSectorType,
                 floor,
                 status,
                 active

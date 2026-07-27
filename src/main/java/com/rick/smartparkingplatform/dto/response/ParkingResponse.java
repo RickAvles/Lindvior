@@ -14,7 +14,17 @@ public record ParkingResponse(
 
         String address,
 
-        Integer capacity,
+        Integer entryGates,
+
+        Integer exitGates,
+
+        Integer entryGateMinProcessingSeconds,
+
+        Integer entryGateMaxProcessingSeconds,
+
+        Integer exitGateMinProcessingSeconds,
+
+        Integer exitGateMaxProcessingSeconds,
 
         boolean active,
 

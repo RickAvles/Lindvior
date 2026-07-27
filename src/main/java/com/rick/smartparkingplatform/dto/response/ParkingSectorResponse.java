@@ -1,7 +1,7 @@
 package com.rick.smartparkingplatform.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.rick.smartparkingplatform.enums.SectorType;
+import com.rick.smartparkingplatform.enums.ParkingSectorType;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -12,7 +12,7 @@ public record ParkingSectorResponse(
 
         String name,
 
-        SectorType type,
+        ParkingSectorType type,
 
         Integer floor,
 

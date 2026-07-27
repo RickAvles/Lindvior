@@ -10,8 +10,10 @@ import com.rick.smartparkingplatform.enums.StatusParkingSpot;
 import com.rick.smartparkingplatform.exception.NoParkingSpotsAvailableException;
 import com.rick.smartparkingplatform.exception.ParkingSpotAlreadyExistsException;
 import com.rick.smartparkingplatform.exception.ResourceNotFoundException;
+import com.rick.smartparkingplatform.mapper.ParkingSpotMapper;
 import com.rick.smartparkingplatform.repository.ParkingSectorRepository;
 import com.rick.smartparkingplatform.repository.ParkingSpotRepository;
+import com.rick.smartparkingplatform.simulation.metrics.statistics.ParkingOccupancy;
 import com.rick.smartparkingplatform.specification.ParkingSpotSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,7 +23,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -29,44 +30,11 @@ public class ParkingSpotService {
 
     private final ParkingSpotRepository parkingSpotRepository;
     private final ParkingSectorRepository parkingSectorRepository;
+    private final ParkingSpotMapper mapper;
 
     // =====================================================
     // API
     // =====================================================
-
-    // Converte o DTO de criação em uma entidade ParkingSpot.
-    private ParkingSpot requestToEntity(ParkingSpotRequest request) {
-
-        ParkingSector parkingSector = parkingSectorRepository.findById(request.parkingSectorId())
-                .orElseThrow(() -> new ResourceNotFoundException("Parking sector not found."));
-
-        ParkingSpot parkingSpot = new ParkingSpot();
-
-        parkingSpot.setCode(request.code());
-        parkingSpot.setStatus(StatusParkingSpot.FREE);
-        parkingSpot.setActive(true);
-        parkingSpot.setCreatedAt(LocalDateTime.now());
-        parkingSpot.setParkingSector(parkingSector);
-
-        return parkingSpot;
-    }
-
-    // Converte uma entidade ParkingSpot para o DTO de resposta.
-    private ParkingSpotResponse entityToResponse(ParkingSpot parkingSpot) {
-
-        ParkingSector sector = parkingSpot.getParkingSector();
-
-        return new ParkingSpotResponse(
-                parkingSpot.getId(),
-                parkingSpot.getCode(),
-                sector.getName(),
-                sector.getType(),
-                sector.getFloor(),
-                parkingSpot.getStatus(),
-                parkingSpot.isActive(),
-                parkingSpot.getCreatedAt()
-        );
-    }
 
     // Monta dinamicamente os filtros da consulta.
     private Specification<ParkingSpot> buildSpecification(ParkingSpotFilter filter) {
@@ -97,9 +65,15 @@ public class ParkingSpotService {
             );
         }
 
-        if (filter.sectorType() != null) {
+        if (filter.parkingSectorType() != null) {
             specification = specification.and(
-                    ParkingSpotSpecification.hasSectorType(filter.sectorType())
+                    ParkingSpotSpecification.hasSectorType(filter.parkingSectorType())
+            );
+        }
+
+        if (filter.parkingSpotType() != null) {
+            specification = specification.and(
+                    ParkingSpotSpecification.hasSpotType(filter.parkingSpotType())
             );
         }
 
@@ -113,13 +87,19 @@ public class ParkingSpotService {
 
         return parkingSpotRepository
                 .findAll(specification, pageable)
-                .map(this::entityToResponse);
+                .map(mapper::toResponse);
     }
 
     // Cria uma nova vaga vinculada a um setor.
     public ParkingSpotResponse create(ParkingSpotRequest request) {
 
-        ParkingSpot parkingSpot = requestToEntity(request);
+        ParkingSector parkingSector = parkingSectorRepository.findById(request.parkingSectorId())
+                .orElseThrow(() -> new ResourceNotFoundException("Parking sector not found."));
+
+        ParkingSpot parkingSpot = mapper.toEntity(
+                request,
+                parkingSector
+        );
 
         if (parkingSpotRepository.existsByCodeAndParkingSector(
                 parkingSpot.getCode(),
@@ -130,7 +110,7 @@ public class ParkingSpotService {
 
         ParkingSpot savedParkingSpot = parkingSpotRepository.save(parkingSpot);
 
-        return entityToResponse(savedParkingSpot);
+        return mapper.toResponse(savedParkingSpot);
     }
 
     // =====================================================
@@ -141,6 +121,13 @@ public class ParkingSpotService {
     public boolean hasAvailableSpot() {
 
         return parkingSpotRepository.existsByStatusAndActiveTrue(StatusParkingSpot.FREE);
+    }
+
+    // Retorna a capacidade atual do estacionamento.
+    public long getCapacity() {
+
+        return parkingSpotRepository.countByActiveTrue();
+
     }
 
     // Retorna a taxa de ocupação do estacionamento.
@@ -202,14 +189,14 @@ public class ParkingSpotService {
     // RELATÓRIOS
     // =====================================================
 
-    // Constrói a resposta de ocupação do estacionamento.
-    private OccupancyResponse toOccupancy(
-            Long totalSpots,
-            Long availableSpots,
-            Long occupiedSpots,
+    // Constrói o estado de ocupação do estacionamento.
+    private ParkingOccupancy toParkingOccupancy(
+            long totalSpots,
+            long availableSpots,
+            long occupiedSpots,
             BigDecimal occupancyRate) {
 
-        return new OccupancyResponse(
+        return new ParkingOccupancy(
                 totalSpots,
                 availableSpots,
                 occupiedSpots,
@@ -217,48 +204,61 @@ public class ParkingSpotService {
         );
     }
 
-    // Calcula a ocupação atual do estacionamento.
-    public OccupancyResponse getOccupancy() {
+    // Calcula o estado atual de ocupação do estacionamento.
+    public ParkingOccupancy getParkingOccupancy() {
 
-        Long totalSpots = parkingSpotRepository.countByActiveTrue();
+        long totalSpots = parkingSpotRepository.countByActiveTrue();
 
         if (totalSpots == 0) {
-            return toOccupancy(
-                    0L,
-                    0L,
-                    0L,
+            return toParkingOccupancy(
+                    0,
+                    0,
+                    0,
                     BigDecimal.ZERO
             );
         }
 
-        Long availableSpots =
+        long availableSpots =
                 parkingSpotRepository.countByStatusAndActiveTrue(
                         StatusParkingSpot.FREE
                 );
 
-        Long reservedSpots =
+        long reservedSpots =
                 parkingSpotRepository.countByStatusAndActiveTrue(
                         StatusParkingSpot.RESERVED
                 );
 
-        Long occupiedSpots =
+        long occupiedSpots =
                 parkingSpotRepository.countByStatusAndActiveTrue(
                         StatusParkingSpot.OCCUPIED
                 );
 
-        Long unavailableSpots = reservedSpots + occupiedSpots;
+        long unavailableSpots = reservedSpots + occupiedSpots;
 
         double occupancy =
-                (unavailableSpots.doubleValue() / totalSpots.doubleValue()) * 100;
+                ((double) unavailableSpots / (double) totalSpots) * 100;
 
         BigDecimal occupancyRate = BigDecimal.valueOf(occupancy)
                 .setScale(2, RoundingMode.HALF_UP);
 
-        return toOccupancy(
+        return toParkingOccupancy(
                 totalSpots,
                 availableSpots,
                 unavailableSpots,
                 occupancyRate
+        );
+    }
+
+    // Calcula a ocupação atual do estacionamento.
+    public OccupancyResponse getOccupancy() {
+
+        ParkingOccupancy occupancy = getParkingOccupancy();
+
+        return new OccupancyResponse(
+                occupancy.totalSpots(),
+                occupancy.availableSpots(),
+                occupancy.occupiedSpots(),
+                occupancy.occupancyRate()
         );
     }
 

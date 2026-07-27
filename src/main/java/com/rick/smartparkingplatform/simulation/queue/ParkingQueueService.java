@@ -5,6 +5,8 @@ import com.rick.smartparkingplatform.simulation.log.SimulationLogger;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -36,9 +38,16 @@ public class ParkingQueueService {
         return session;
     }
 
-    // Verifica se existem sessões aguardando estacionamento.
-    public boolean hasWaitingSessions() {
-        return !queue.isEmpty();
+    // Retorna todas as sessões procurando vaga.
+    public List<ParkingSession> getAll() {
+
+        return new ArrayList<>(queue);
+    }
+
+    // Remove uma sessão da fila.
+    public void remove(ParkingSession parkingSession) {
+
+        queue.remove(parkingSession);
     }
 
     // Retorna a quantidade de sessões na fila.

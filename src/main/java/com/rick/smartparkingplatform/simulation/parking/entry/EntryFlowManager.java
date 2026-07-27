@@ -1,39 +1,49 @@
 package com.rick.smartparkingplatform.simulation.parking.entry;
 
+import com.rick.smartparkingplatform.entity.Parking;
+import com.rick.smartparkingplatform.service.ParkingService;
 import com.rick.smartparkingplatform.simulation.engine.SimulationClock;
+import com.rick.smartparkingplatform.simulation.gate.EntryGateManager;
+import com.rick.smartparkingplatform.simulation.gate.Gate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
 public class EntryFlowManager {
 
-    private static final int MIN_COOLDOWN_SECONDS = 10;
-    private static final int MAX_COOLDOWN_SECONDS = 20;
-
     private final SimulationClock simulationClock;
+    private final ParkingService parkingService;
+    private final EntryGateManager entryGateManager;
 
-    private LocalDateTime nextEntryAt;
+    // Retorna uma cancela disponível para processamento.
+    public Optional<Gate> getAvailableGate() {
 
-    // Verifica se a cancela pode processar o próximo veículo.
-    public boolean canProcessNextVehicle() {
+        return entryGateManager.getAvailableGate(
+                simulationClock.getCurrentTime()
+        );
 
-        if (nextEntryAt == null) {
-            return true;
-        }
-
-        return !simulationClock.getCurrentTime().isBefore(nextEntryAt);
     }
 
-    // Inicia o tempo de espera para a próxima entrada.
-    public void startCooldown() {
+    // Inicia o processamento da cancela.
+    public void startCooldown(Gate gate) {
 
-        int cooldown = ThreadLocalRandom.current().nextInt(MIN_COOLDOWN_SECONDS, MAX_COOLDOWN_SECONDS + 1);
+        Parking parking = parkingService.getCurrentParking();
 
-        nextEntryAt = simulationClock.getCurrentTime().plusSeconds(cooldown);
+        int cooldown = ThreadLocalRandom.current().nextInt(
+                parking.getEntryGateMinProcessingSeconds(),
+                parking.getEntryGateMaxProcessingSeconds() + 1
+        );
+
+        entryGateManager.startCooldown(
+                gate,
+                simulationClock.getCurrentTime(),
+                cooldown
+        );
+
     }
 
 }

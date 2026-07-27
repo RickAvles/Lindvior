@@ -1,11 +1,9 @@
 package com.rick.smartparkingplatform.enums;
 
-public enum SectorType {
-
+public enum ParkingSectorType {
     REGULAR,
-    MOTORCYCLE,
     ELECTRIC,
-    PCD,
-    PREMIUM
+    PREMIUM,
+    MOTORCYCLE
 
 }

@@ -1,15 +1,13 @@
 package com.rick.smartparkingplatform.config.initializer;
 
+import com.rick.smartparkingplatform.config.initializer.generator.LayoutGenerator;
 import com.rick.smartparkingplatform.entity.Parking;
 import com.rick.smartparkingplatform.entity.ParkingSector;
-import com.rick.smartparkingplatform.entity.ParkingSpot;
 import com.rick.smartparkingplatform.entity.User;
+import com.rick.smartparkingplatform.enums.ParkingSectorType;
 import com.rick.smartparkingplatform.enums.Role;
-import com.rick.smartparkingplatform.enums.SectorType;
-import com.rick.smartparkingplatform.enums.StatusParkingSpot;
 import com.rick.smartparkingplatform.repository.ParkingRepository;
 import com.rick.smartparkingplatform.repository.ParkingSectorRepository;
-import com.rick.smartparkingplatform.repository.ParkingSpotRepository;
 import com.rick.smartparkingplatform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
@@ -30,21 +28,9 @@ public class DevelopmentDataInitializer implements CommandLineRunner {
 
     private final ParkingRepository parkingRepository;
     private final ParkingSectorRepository parkingSectorRepository;
-    private final ParkingSpotRepository parkingSpotRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-
-    private static final int REGULAR_SPOTS = 200;
-    private static final int MOTORCYCLE_SPOTS = 50;
-    private static final int ELECTRIC_SPOTS = 20;
-    private static final int PCD_SPOTS = 20;
-    private static final int PREMIUM_SPOTS = 10;
-
-    private static final int TOTAL_CAPACITY = REGULAR_SPOTS * 2
-            + MOTORCYCLE_SPOTS
-            + ELECTRIC_SPOTS
-            + PCD_SPOTS
-            + PREMIUM_SPOTS;
+    private final LayoutGenerator layoutGenerator;
 
     /**
      * Cria o estacionamento utilizado durante o desenvolvimento.
@@ -56,7 +42,14 @@ public class DevelopmentDataInitializer implements CommandLineRunner {
         parking.setName("Lindvior Shopping");
         parking.setAddress("Salvador - BA");
 
-        parking.setCapacity(TOTAL_CAPACITY);
+        parking.setEntryGates(6);
+        parking.setExitGates(4);
+
+        parking.setEntryGateMinProcessingSeconds(3);
+        parking.setEntryGateMaxProcessingSeconds(7);
+
+        parking.setExitGateMinProcessingSeconds(2);
+        parking.setExitGateMaxProcessingSeconds(5);
 
         parking.setOpeningTime(LocalTime.MIN);
         parking.setClosingTime(LocalTime.of(23, 59));
@@ -72,7 +65,7 @@ public class DevelopmentDataInitializer implements CommandLineRunner {
     private ParkingSector createSector(
             Parking parking,
             String name,
-            SectorType type,
+            ParkingSectorType type,
             Integer floor) {
 
         ParkingSector parkingSector = new ParkingSector();
@@ -86,52 +79,25 @@ public class DevelopmentDataInitializer implements CommandLineRunner {
         parkingSector.setActive(true);
         parkingSector.setCreatedAt(LocalDateTime.now());
 
-        return parkingSectorRepository.save(parkingSector);
+        return parkingSector;
     }
 
     /**
-     * Cria as vagas de um setor do estacionamento.
+     * Cria os setores utilizados durante o desenvolvimento.
      */
-    private void createParkingSpots(
-            ParkingSector parkingSector,
-            int quantity) {
+    private List<ParkingSector> createParkingSectors(Parking parking) {
 
-        List<ParkingSpot> parkingSpots = new ArrayList<>();
+        List<ParkingSector> parkingSectors = new ArrayList<>();
 
-        for (int number = 1; number <= quantity; number++) {
+        parkingSectors.add(createSector(parking, "A", ParkingSectorType.REGULAR, 1));
+        parkingSectors.add(createSector(parking, "B", ParkingSectorType.REGULAR, 1));
+        parkingSectors.add(createSector(parking, "B", ParkingSectorType.REGULAR, 1));
+        parkingSectors.add(createSector(parking, "C", ParkingSectorType.MOTORCYCLE, 1));
+        parkingSectors.add(createSector(parking, "D", ParkingSectorType.ELECTRIC, 1));
+        parkingSectors.add(createSector(parking, "E", ParkingSectorType.PREMIUM, 2));
 
-            ParkingSpot parkingSpot = new ParkingSpot();
+        return parkingSectorRepository.saveAll(parkingSectors);
 
-            parkingSpot.setCode(
-                    generateSpotCode(
-                            parkingSector.getName(),
-                            number
-                    )
-            );
-
-            parkingSpot.setStatus(StatusParkingSpot.FREE);
-            parkingSpot.setActive(true);
-            parkingSpot.setCreatedAt(LocalDateTime.now());
-
-            parkingSpot.setParkingSector(parkingSector);
-
-            parkingSpots.add(parkingSpot);
-        }
-
-        parkingSpotRepository.saveAll(parkingSpots);
-    }
-
-    /**
-     * Gera o código identificador de uma vaga.
-     */
-    private String generateSpotCode(
-            String sector,
-            int number) {
-
-        return "%s%03d".formatted(
-                sector,
-                number
-        );
     }
 
     /**
@@ -158,38 +124,20 @@ public class DevelopmentDataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String @NonNull ... args) {
+
         if (parkingRepository.existsBy()) {
             return;
         }
+
 
         createAdminUser();
 
         Parking parking = createParking();
 
-        ParkingSector sectorA = createSector(parking, "A", SectorType.REGULAR, 1);
+        List<ParkingSector> parkingSectors =
+                createParkingSectors(parking);
 
-        ParkingSector sectorB = createSector(parking, "B", SectorType.REGULAR, 1);
-
-        ParkingSector sectorC = createSector(parking, "C", SectorType.MOTORCYCLE, 1);
-
-        ParkingSector sectorD = createSector(parking, "D", SectorType.ELECTRIC, 1);
-
-        ParkingSector sectorE = createSector(parking, "E", SectorType.PCD, 1);
-
-        ParkingSector sectorF = createSector(parking, "F", SectorType.PREMIUM, 2);
-
-        createParkingSpots(sectorA, REGULAR_SPOTS);
-
-        createParkingSpots(sectorB, REGULAR_SPOTS);
-
-        createParkingSpots(sectorC, MOTORCYCLE_SPOTS);
-
-        createParkingSpots(sectorD, ELECTRIC_SPOTS);
-
-        createParkingSpots(sectorE, PCD_SPOTS);
-
-        createParkingSpots(sectorF, PREMIUM_SPOTS);
-
+        layoutGenerator.generate(parkingSectors);
     }
 
 }
