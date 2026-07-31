@@ -4,8 +4,7 @@ import com.rick.smartparkingplatform.dto.response.DashboardOccupancyResponse;
 import com.rick.smartparkingplatform.dto.response.DashboardResponse;
 import com.rick.smartparkingplatform.dto.response.DashboardSimulationResponse;
 import com.rick.smartparkingplatform.dto.response.GateResponse;
-import com.rick.smartparkingplatform.simulation.metrics.dashboard.SimulationMetrics;
-import com.rick.smartparkingplatform.simulation.metrics.dashboard.SimulationMetricsService;
+import com.rick.smartparkingplatform.simulation.dashboard.DashboardState;
 import com.rick.smartparkingplatform.simulation.metrics.statistics.GateMetrics;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,7 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DashboardService {
 
-    private final SimulationMetricsService simulationMetricsService;
+    private final DashboardStateService dashboardStateService;
 
     // Converte as métricas das cancelas para a resposta da API.
     private List<GateResponse> toGateResponse(List<GateMetrics> gates) {
@@ -32,44 +31,49 @@ public class DashboardService {
 
     // Converte os dados da simulação.
     private DashboardSimulationResponse toSimulationResponse(
-            SimulationMetrics metrics) {
+            DashboardState dashboard) {
 
         return new DashboardSimulationResponse(
-                metrics.currentTime(),
-                metrics.simulationState(),
-                metrics.currentDayType(),
-                metrics.currentWeather()
+                dashboard.clock().currentTime(),
+                dashboard.clock().simulationState(),
+                dashboard.conditions().dayType(),
+                dashboard.conditions().weather()
         );
+
     }
 
     // Converte os dados de ocupação.
     private DashboardOccupancyResponse toOccupancyResponse(
-            SimulationMetrics metrics) {
+            DashboardState dashboard) {
 
         return new DashboardOccupancyResponse(
-                metrics.totalSpots(),
-                metrics.availableSpots(),
-                metrics.occupiedSpots(),
-                metrics.occupancyRate(),
-                metrics.entryQueue(),
-                metrics.parkingQueue(),
-                metrics.exitQueue(),
-                toGateResponse(metrics.entryGates()),
-                toGateResponse(metrics.exitGates())
+                dashboard.parking().totalSpots(),
+                dashboard.parking().availableSpots(),
+                dashboard.parking().occupiedSpots(),
+                dashboard.parking().occupancyRate(),
+                dashboard.parking().entryQueue(),
+                dashboard.parking().parkingQueue(),
+                dashboard.parking().exitQueue(),
+                toGateResponse(
+                        dashboard.statistics().entryGates()
+                ),
+                toGateResponse(
+                        dashboard.statistics().exitGates()
+                )
         );
-    }
 
+    }
 
     // Retorna os dados do dashboard.
     public DashboardResponse getDashboard() {
 
-        SimulationMetrics metrics =
-                simulationMetricsService.getCurrentMetrics();
+        DashboardState dashboard = dashboardStateService.getState();
 
         return new DashboardResponse(
-                toSimulationResponse(metrics),
-                toOccupancyResponse(metrics)
+                toSimulationResponse(dashboard),
+                toOccupancyResponse(dashboard)
         );
+
     }
 
 }

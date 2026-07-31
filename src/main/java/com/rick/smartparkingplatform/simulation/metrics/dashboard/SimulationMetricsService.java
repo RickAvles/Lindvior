@@ -1,8 +1,12 @@
 package com.rick.smartparkingplatform.simulation.metrics.dashboard;
 
+import com.rick.smartparkingplatform.service.DashboardStateService;
 import com.rick.smartparkingplatform.service.ParkingSessionService;
 import com.rick.smartparkingplatform.service.ParkingSpotService;
 import com.rick.smartparkingplatform.simulation.conditions.ConditionService;
+import com.rick.smartparkingplatform.simulation.dashboard.model.DashboardClock;
+import com.rick.smartparkingplatform.simulation.dashboard.model.DashboardParking;
+import com.rick.smartparkingplatform.simulation.dashboard.model.DashboardStatistics;
 import com.rick.smartparkingplatform.simulation.engine.SimulationClock;
 import com.rick.smartparkingplatform.simulation.gate.EntryGateManager;
 import com.rick.smartparkingplatform.simulation.gate.ExitGateManager;
@@ -44,6 +48,8 @@ public class SimulationMetricsService {
 
     // Statistics
     private final SimulationStatisticsService simulationStatisticsService;
+
+    private final DashboardStateService dashboardStateService;
 
     private SimulationMetrics currentMetrics;
 
@@ -97,7 +103,7 @@ public class SimulationMetricsService {
                 simulationStatisticsService.getEntryFlowRate(),
 
                 simulationStatisticsService.getExitFlowRate(),
-                
+
                 // Cancelas.
                 toGateMetrics(
                         entryGateManager.getGates(),
@@ -110,6 +116,44 @@ public class SimulationMetricsService {
                         "S"
                 )
 
+        );
+
+        dashboardStateService.updateParking(
+                new DashboardParking(
+                        currentMetrics.totalSpots(),
+                        currentMetrics.availableSpots(),
+                        currentMetrics.occupiedSpots(),
+                        currentMetrics.occupancyRate(),
+
+                        currentMetrics.entryQueue(),
+                        currentMetrics.parkingQueue(),
+                        currentMetrics.exitQueue(),
+
+                        currentMetrics.activeSessions(),
+                        currentMetrics.enteringSessions(),
+                        currentMetrics.exitingSessions()
+                )
+        );
+
+        dashboardStateService.updateStatistics(
+                new DashboardStatistics(
+                        currentMetrics.completedSessions(),
+                        currentMetrics.averageStay(),
+                        currentMetrics.averageEntryWait(),
+                        currentMetrics.averageParkingWait(),
+                        currentMetrics.averageExitWait(),
+                        currentMetrics.entryFlowRate(),
+                        currentMetrics.exitFlowRate(),
+                        currentMetrics.entryGates(),
+                        currentMetrics.exitGates()
+                )
+        );
+
+        dashboardStateService.updateClock(
+                new DashboardClock(
+                        currentMetrics.currentTime(),
+                        currentMetrics.simulationState()
+                )
         );
     }
 

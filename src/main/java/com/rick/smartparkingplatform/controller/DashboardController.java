@@ -15,15 +15,14 @@ public class DashboardController {
 
     private final DashboardService dashboardService;
 
-    /**
-     * Retorna o resumo operacional do estacionamento.
-     */
+    // Retorna o estado atual do dashboard.
     @GetMapping
     public ResponseEntity<DashboardResponse> getDashboard() {
 
         return ResponseEntity.ok(
                 dashboardService.getDashboard()
         );
+
     }
 
 }
