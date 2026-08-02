@@ -1,5 +1,6 @@
 package com.rick.smartparkingplatform.simulation.dashboard;
 
+import com.rick.smartparkingplatform.dto.dashboard.DashboardLayout;
 import com.rick.smartparkingplatform.simulation.dashboard.model.DashboardClock;
 import com.rick.smartparkingplatform.simulation.dashboard.model.DashboardConditions;
 import com.rick.smartparkingplatform.simulation.dashboard.model.DashboardParking;
@@ -13,7 +14,9 @@ public record DashboardState(
 
         DashboardParking parking,
 
-        DashboardStatistics statistics
+        DashboardStatistics statistics,
+
+        DashboardLayout layout
 
 ) {
 }

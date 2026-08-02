@@ -5,6 +5,7 @@ import com.rick.smartparkingplatform.entity.ParkingSpot;
 import com.rick.smartparkingplatform.entity.Vehicle;
 import com.rick.smartparkingplatform.service.ParkingSessionService;
 import com.rick.smartparkingplatform.service.ParkingSpotService;
+import com.rick.smartparkingplatform.simulation.dashboard.event.DashboardEventPublisher;
 import com.rick.smartparkingplatform.simulation.engine.SimulationClock;
 import com.rick.smartparkingplatform.simulation.gate.EntryMovementManager;
 import com.rick.smartparkingplatform.simulation.gate.Gate;
@@ -48,6 +49,7 @@ public class ParkingEntryService {
     private final SimulationClock simulationClock;
     private final SimulationStatisticsService simulationStatisticsService;
     private final SessionMetricsService sessionMetricsService;
+    private final DashboardEventPublisher dashboardEventPublisher;
 
     // Processa a entrada de veículos.
     @Transactional
@@ -110,6 +112,8 @@ public class ParkingEntryService {
         Gate gate = availableGate.get();
 
         parkingSession.setEntryGate(gate);
+
+        dashboardEventPublisher.publishVehicleEntered(parkingSession);
 
         // Inicia o tempo de processamento da cancela.
         entryMovementManager.startGateCrossing(

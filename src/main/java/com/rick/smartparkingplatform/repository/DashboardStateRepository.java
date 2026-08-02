@@ -1,5 +1,6 @@
 package com.rick.smartparkingplatform.repository;
 
+import com.rick.smartparkingplatform.dto.dashboard.DashboardLayout;
 import com.rick.smartparkingplatform.simulation.dashboard.DashboardKeys;
 import com.rick.smartparkingplatform.simulation.dashboard.model.DashboardClock;
 import com.rick.smartparkingplatform.simulation.dashboard.model.DashboardConditions;
@@ -80,6 +81,14 @@ public class DashboardStateRepository {
         return (DashboardStatistics) redisTemplate
                 .opsForValue()
                 .get(DashboardKeys.STATISTICS);
+
+    }
+
+    public DashboardLayout getLayout() {
+
+        return (DashboardLayout) redisTemplate
+                .opsForValue()
+                .get(DashboardKeys.LAYOUT);
 
     }
 }

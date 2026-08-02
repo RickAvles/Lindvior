@@ -13,4 +13,6 @@ public final class DashboardKeys {
 
     public static final String STATISTICS = "dashboard:statistics";
 
+    public static final String LAYOUT = "dashboard:layout";
+
 }

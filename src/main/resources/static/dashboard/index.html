@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Lindvior Dashboard</title>
+
+    <link rel="stylesheet"
+          href="css/dashboard.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <header class="header">
+
+        <div>
+
+            <h1>Lindvior</h1>
+
+            <span class="subtitle">
+                Dashboard de Simulação
+            </span>
+
+        </div>
+
+        <div class="connection">
+
+            <span id="connectionIndicator"
+                  class="indicator disconnected">
+            </span>
+
+            <span id="connectionText">
+                Desconectado
+            </span>
+
+        </div>
+
+    </header>
+
+    <main>
+
+        <!-- ========================= -->
+        <!-- STATUS DA SIMULAÇÃO -->
+        <!-- ========================= -->
+
+        <section class="card">
+
+            <h2>Simulação</h2>
+
+            <div class="grid-4">
+
+                <div class="info">
+
+                    <span class="label">
+                        Estado
+                    </span>
+
+                    <span id="simulationState"
+                          class="value">
+                        -
+                    </span>
+
+                </div>
+
+                <div class="info">
+
+                    <span class="label">
+                        Hora
+                    </span>
+
+                    <span id="simulationTime"
+                          class="value">
+                        -
+                    </span>
+
+                </div>
+
+                <div class="info">
+
+                    <span class="label">
+                        Clima
+                    </span>
+
+                    <span id="weather"
+                          class="value">
+                        -
+                    </span>
+
+                </div>
+
+                <div class="info">
+
+                    <span class="label">
+                        Tipo de Dia
+                    </span>
+
+                    <span id="dayType"
+                          class="value">
+                        -
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ========================= -->
+        <!-- OCUPAÇÃO -->
+        <!-- ========================= -->
+
+        <section class="card">
+
+            <h2>Ocupação</h2>
+
+            <div class="grid-3">
+
+                <div class="info">
+
+                    <span class="label">
+                        Disponíveis
+                    </span>
+
+                    <span id="availableSpots"
+                          class="value">
+                        0
+                    </span>
+
+                </div>
+
+                <div class="info">
+
+                    <span class="label">
+                        Ocupadas
+                    </span>
+
+                    <span id="occupiedSpots"
+                          class="value">
+                        0
+                    </span>
+
+                </div>
+
+                <div class="info">
+
+                    <span class="label">
+                        Taxa
+                    </span>
+
+                    <span id="occupancyRate"
+                          class="value">
+                        0%
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div class="progress">
+
+                <div id="progressBar"
+                     class="progress-bar">
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ========================= -->
+        <!-- CANCELAS -->
+        <!-- ========================= -->
+
+        <section class="gates">
+
+            <div class="card">
+
+                <h2>Entradas</h2>
+
+                <div id="entryGates">
+
+                </div>
+
+            </div>
+
+            <div class="card">
+
+                <h2>Saídas</h2>
+
+                <div id="exitGates">
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ========================= -->
+        <!-- LOG -->
+        <!-- ========================= -->
+
+        <section class="card">
+
+            <h2>Última Atualização</h2>
+
+            <span id="lastUpdate">
+                -
+            </span>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script src="https://unpkg.com/@stomp/stompjs@7.2.1/bundles/stomp.umd.min.js"></script>
+
+<script src="js/dashboard-utils.js"></script>
+<script src="js/dashboard-ui.js"></script>
+<script src="js/dashboard-ws.js"></script>
+<script src="js/dashboard.js"></script>
+
+</body>
+
+</html>

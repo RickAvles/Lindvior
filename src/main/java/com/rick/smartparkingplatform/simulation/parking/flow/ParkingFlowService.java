@@ -3,6 +3,7 @@ package com.rick.smartparkingplatform.simulation.parking.flow;
 import com.rick.smartparkingplatform.entity.ParkingSession;
 import com.rick.smartparkingplatform.service.ParkingSessionService;
 import com.rick.smartparkingplatform.service.ParkingSpotService;
+import com.rick.smartparkingplatform.simulation.dashboard.event.DashboardEventPublisher;
 import com.rick.smartparkingplatform.simulation.engine.SimulationClock;
 import com.rick.smartparkingplatform.simulation.log.SimulationLogger;
 import com.rick.smartparkingplatform.simulation.metrics.session.SessionMetrics;
@@ -38,6 +39,7 @@ public class ParkingFlowService {
     // Infrastructure
     private final SimulationClock simulationClock;
     private final SimulationLogger simulationLogger;
+    private final DashboardEventPublisher dashboardEventPublisher;
 
     // Processa os veículos em deslocamento até a vaga.
     @Transactional
@@ -66,8 +68,9 @@ public class ParkingFlowService {
 
             parkingSessionService.park(parkingSession);
 
-            SessionMetrics sessionMetrics =
-                    sessionMetricsService.get(parkingSession);
+            dashboardEventPublisher.publishVehicleParked(parkingSession);
+
+            SessionMetrics sessionMetrics = sessionMetricsService.get(parkingSession);
 
             sessionMetrics.setParkedAt(currentTime);
 

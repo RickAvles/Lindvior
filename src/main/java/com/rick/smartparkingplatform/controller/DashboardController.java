@@ -1,5 +1,6 @@
 package com.rick.smartparkingplatform.controller;
 
+import com.rick.smartparkingplatform.dto.dashboard.DashboardLayout;
 import com.rick.smartparkingplatform.dto.response.DashboardResponse;
 import com.rick.smartparkingplatform.service.DashboardService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,11 @@ public class DashboardController {
                 dashboardService.getDashboard()
         );
 
+    }
+
+    @GetMapping("/layout")
+    public ResponseEntity<DashboardLayout> getLayout() {
+        return ResponseEntity.ok(dashboardService.getLayout());
     }
 
 }

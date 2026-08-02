@@ -50,6 +50,12 @@ public class SecurityConfig {
                         )
                         .permitAll()
 
+                        //testes
+                        .requestMatchers(
+                                "/ws",
+                                "/dashboard/**"
+                        ).permitAll()
+
                         //Dashboard
 
                         .requestMatchers(
