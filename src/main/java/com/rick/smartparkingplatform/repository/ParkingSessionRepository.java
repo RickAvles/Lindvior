@@ -2,6 +2,7 @@ package com.rick.smartparkingplatform.repository;
 
 import com.rick.smartparkingplatform.entity.ParkingSession;
 import com.rick.smartparkingplatform.enums.StatusParkingSession;
+import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -34,4 +35,13 @@ public interface ParkingSessionRepository extends JpaRepository<ParkingSession, 
     List<ParkingSession> findByStatus(StatusParkingSession status);
 
     long countByStatus(StatusParkingSession status);
+
+    @Query("""
+                SELECT ps
+                FROM ParkingSession ps
+                JOIN FETCH ps.vehicle
+                JOIN FETCH ps.parkingSpot
+                WHERE ps.status = :status
+            """)
+    List<ParkingSession> findByStatusFetchVehicleAndSpot(@Param("status") StatusParkingSession status);
 }

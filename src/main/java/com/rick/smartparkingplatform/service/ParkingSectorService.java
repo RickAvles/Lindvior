@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -108,7 +109,13 @@ public class ParkingSectorService {
     // SIMULAÇÃO
     // =====================================================
 
-    // Nenhum méto do por enquanto.
+
+    // Retorna todos os setores ativos.
+    public List<ParkingSector> findAllActive() {
+
+        return parkingSectorRepository.findByActiveTrueOrderByCreatedAtAsc();
+
+    }
 
     // =====================================================
     // RELATÓRIOS

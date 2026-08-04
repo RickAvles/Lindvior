@@ -3,6 +3,7 @@ package com.rick.smartparkingplatform.simulation.parking.exit;
 import com.rick.smartparkingplatform.entity.ParkingSession;
 import com.rick.smartparkingplatform.service.ParkingSessionService;
 import com.rick.smartparkingplatform.service.ParkingSpotService;
+import com.rick.smartparkingplatform.simulation.dashboard.event.DashboardEventPublisher;
 import com.rick.smartparkingplatform.simulation.engine.SimulationClock;
 import com.rick.smartparkingplatform.simulation.gate.ExitMovementManager;
 import com.rick.smartparkingplatform.simulation.gate.Gate;
@@ -42,6 +43,8 @@ public class ParkingExitService {
     // Simulation
     private final SimulationClock simulationClock;
     private final SimulationLogger simulationLogger;
+    private final DashboardEventPublisher dashboardEventPublisher;
+
 
     // Processa a saída de veículos.
     @Transactional
@@ -63,6 +66,8 @@ public class ParkingExitService {
         );
 
         parkingExitManager.startExit(parkingSession);
+
+        dashboardEventPublisher.publishVehicleLeftSpot(parkingSession);
     }
 
     // Move um veículo da fila de saída para a cancela.
@@ -123,6 +128,8 @@ public class ParkingExitService {
                     parkingSession,
                     simulationClock.getCurrentTime()
             );
+
+            dashboardEventPublisher.publishVehicleExited(parkingSession);
 
             SessionMetrics sessionMetrics =
                     sessionMetricsService.get(parkingSession);

@@ -45,7 +45,9 @@ public class DashboardStateService {
                 dashboardStateRepository.getClock(),
                 dashboardStateRepository.getConditions(),
                 dashboardStateRepository.getParking(),
-                dashboardStateRepository.getStatistics()
+                dashboardStateRepository.getStatistics(),
+                dashboardStateRepository.getLayout()
+
         );
 
     }

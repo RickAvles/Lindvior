@@ -4,6 +4,7 @@ import com.rick.smartparkingplatform.service.DashboardStateService;
 import com.rick.smartparkingplatform.service.ParkingSessionService;
 import com.rick.smartparkingplatform.service.ParkingSpotService;
 import com.rick.smartparkingplatform.simulation.conditions.ConditionService;
+import com.rick.smartparkingplatform.simulation.dashboard.DashboardPublisher;
 import com.rick.smartparkingplatform.simulation.dashboard.model.DashboardClock;
 import com.rick.smartparkingplatform.simulation.dashboard.model.DashboardParking;
 import com.rick.smartparkingplatform.simulation.dashboard.model.DashboardStatistics;
@@ -50,6 +51,7 @@ public class SimulationMetricsService {
     private final SimulationStatisticsService simulationStatisticsService;
 
     private final DashboardStateService dashboardStateService;
+    private final DashboardPublisher dashboardPublisher;
 
     private SimulationMetrics currentMetrics;
 
@@ -155,6 +157,8 @@ public class SimulationMetricsService {
                         currentMetrics.simulationState()
                 )
         );
+
+        dashboardPublisher.publish();
     }
 
     // Converte as cancelas para métricas.
@@ -181,16 +185,6 @@ public class SimulationMetricsService {
                     );
                 })
                 .toList();
-    }
-
-    // Retorna o snapshot atual da simulação.
-    public SimulationMetrics getCurrentMetrics() {
-
-        if (currentMetrics == null) {
-            update();
-        }
-
-        return currentMetrics;
     }
 
 }

@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -111,6 +112,13 @@ public class ParkingSpotService {
         ParkingSpot savedParkingSpot = parkingSpotRepository.save(parkingSpot);
 
         return mapper.toResponse(savedParkingSpot);
+    }
+
+    // Retorna todas as vagas ativas.
+    public List<ParkingSpot> findAllActive() {
+
+        return parkingSpotRepository.findByActiveTrueOrderByParkingSectorNameAscCodeAsc();
+
     }
 
     // =====================================================

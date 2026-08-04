@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard WebSocket Test</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+        }
+
+        button {
+            margin-right: 10px;
+            padding: 8px 16px;
+        }
+
+        pre {
+            margin-top: 20px;
+            background: #111;
+            color: #0f0;
+            padding: 15px;
+            height: 500px;
+            overflow: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>Dashboard WebSocket Test</h2>
+
+<button id="connect">Conectar</button>
+<button id="disconnect">Desconectar</button>
+
+<pre id="log"></pre>
+
+<script src="https://unpkg.com/@stomp/stompjs@7.2.1/bundles/stomp.umd.min.js"></script>
+
+<script>
+
+    const log = document.getElementById("log");
+
+    function println(msg) {
+        console.log(msg);
+        log.textContent += msg + "\n";
+    }
+
+    println("Página carregada.");
+
+    const client = new StompJs.Client({
+
+        brokerURL: "ws://localhost:8080/ws",
+
+        reconnectDelay: 0,
+
+        debug: function (str) {
+            println("[DEBUG] " + str);
+        },
+
+        onConnect: function () {
+
+            println("CONECTADO");
+
+            client.subscribe("/topic/dashboard", function (message) {
+
+                println("Mensagem recebida:");
+                println(message.body);
+
+            });
+
+        },
+
+        onWebSocketError: function (error) {
+            println("Erro WebSocket");
+            console.error(error);
+        },
+
+        onWebSocketClose: function (event) {
+            println("WebSocket fechado");
+            println("Código: " + event.code);
+            println("Motivo: " + event.reason);
+        },
+
+        onStompError: function (frame) {
+            println("Erro STOMP");
+            println(frame.body);
+        }
+
+    });
+
+    document.getElementById("connect").onclick = function () {
+        println("Conectando...");
+        client.activate();
+    };
+
+    document.getElementById("disconnect").onclick = function () {
+        println("Desconectando...");
+        client.deactivate();
+    };
+
+</script>
+
+</body>
+</html>

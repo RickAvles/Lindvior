@@ -85,12 +85,6 @@ public class ParkingSessionService {
         return parkingSessionRepository.findAll(specification, pageable).map(mapper::toResponse);
     }
 
-    // Retorna a entidade da sessão.
-    public ParkingSession getEntity(UUID id) {
-
-        return findParkingSessionById(id);
-    }
-
     // Retorna uma sessão pelo identificador.
     public ParkingSessionResponse getById(UUID id) {
 
@@ -180,6 +174,12 @@ public class ParkingSessionService {
         return parkingSessionRepository.findByStatus(StatusParkingSession.ACTIVE);
     }
 
+    // Retorna todas as sessões ativas para a dashboard.
+    public List<ParkingSession> getActiveSessionsDashboard() {
+
+        return parkingSessionRepository.findByStatusFetchVehicleAndSpot(StatusParkingSession.ACTIVE);
+    }
+
     // Verifica se o veículo possui uma sessão aberta.
     public boolean existsOpenSession(UUID vehicleId) {
 
@@ -209,7 +209,6 @@ public class ParkingSessionService {
 
         return parkingSessionRepository.countByStatus(StatusParkingSession.FINISHED);
     }
-
 
     // =====================================================
     // RELATÓRIOS
