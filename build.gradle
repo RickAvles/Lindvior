@@ -26,6 +26,8 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-api:0.12.7'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation 'org.webjars:stomp-websocket:2.3.4'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.7'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.7'
