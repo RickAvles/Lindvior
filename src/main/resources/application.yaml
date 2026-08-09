@@ -5,6 +5,12 @@ spring:
   profiles:
     active: dev
 
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
   data:
     web:
       pageable:
@@ -20,6 +26,8 @@ management:
           - info
           - metrics
           - prometheus
+          - beans
+          - conditions
 
   endpoint:
     health:

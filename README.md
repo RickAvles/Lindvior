@@ -5,16 +5,18 @@
 <h1 align="center">Lindvior</h1>
 
 <p align="center">
-  Intelligent Smart Parking Simulation Platform built with Java & Spring Boot.
+  Smart Parking Simulation Platform built with Java & Spring Boot.
 </p>
 
 <p align="center">
 
 ![Java](https://img.shields.io/badge/Java-21-007396?style=for-the-badge&logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.x-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
-![Spring Security](https://img.shields.io/badge/Spring_Security-6.x-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white)
+![Spring Security](https://img.shields.io/badge/Spring_Security-7.x-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white)
 ![JWT](https://img.shields.io/badge/JWT-Authentication-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-Cache-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![RabbitMQ](https://img.shields.io/badge/RabbitMQ-Messaging-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white)
 ![Gradle](https://img.shields.io/badge/Gradle-Build-02303A?style=for-the-badge&logo=gradle)
 ![JUnit 5](https://img.shields.io/badge/JUnit-5-25A162?style=for-the-badge)
 ![Mockito](https://img.shields.io/badge/Mockito-Test-78A641?style=for-the-badge)
@@ -25,228 +27,335 @@
 
 # Overview
 
-Lindvior is an intelligent Smart Parking Simulation Platform designed to model the behavior of a real-world parking
-facility.
+Lindvior is a backend platform for managing and simulating the operation of a smart parking facility.
 
-Instead of focusing only on CRUD operations, the project simulates vehicle arrivals, parking allocation, occupancy,
-session lifecycle, and business rules while exposing a modern REST API for administration and monitoring.
+The project combines a REST API for parking management with a real-time simulation engine capable of reproducing vehicle
+arrivals, parking allocation, occupancy, parking sessions, stays, exits, queues, and operational metrics.
 
-The project is being developed as a production-oriented backend application, emphasizing clean architecture,
-maintainability, scalability, automated testing, and modern software engineering practices.
+It was developed as a portfolio project with a focus on practical backend engineering, software architecture,
+persistence, security, concurrency, caching, messaging, asynchronous processing, reporting, and automated testing.
 
 ---
 
 # Architecture
 
-```
-                   Client
+Lindvior is structured as a modular monolith, separating the administrative domain from the simulation domain.
+
+<pre>
+                    Client
                       │
                       ▼
-              REST Controllers
+                REST Controllers
                       │
                       ▼
-                Service Layer
+                 Application
                       │
-      ┌───────────────┼────────────────┐
-      ▼               ▼                ▼
- Business Rules  Specifications   Repositories
-                      │
-                      ▼
-                 PostgreSQL
-```
+          ┌───────────┴───────────┐
+          │                       │
+          ▼                       ▼
+   Administrative Domain    Simulation Domain
+          │                       │
+          │                 Simulation Engine
+          │                       │
+          │              ┌────────┼────────┐
+          │              ▼        ▼        ▼
+          │           Vehicles  Parking  Metrics
+          │              │        │        │
+          └──────────────┴────────┴────────┘
+                         │
+                         ▼
+                    PostgreSQL
+</pre>
+
+RabbitMQ is used for asynchronous daily report processing, while Redis is used for caching.
 
 ---
 
 # Domain Model
 
-```
+A parking facility is divided into sectors, and each sector contains parking spots.
+
+<pre>
 Parking
    │
-   ├── ParkingSector
-   │       │
-   │       └── ParkingSpot
-   │
+   └── ParkingSector
+          │
+          └── ParkingSpot
+
 Vehicle
    │
    └── ParkingSession
-           │
-           └── ParkingSpot
-```
+          │
+          └── ParkingSpot
+</pre>
 
----
+Parking spots have their own types and statuses.
 
-# Tech Stack
+The simulation supports:
 
-- Java 21
-- Spring Boot
-- Spring Data JPA
-- Spring Security
-- JWT
-- PostgreSQL
-- Gradle
-- JUnit 5
-- Mockito
+- Regular spots
+- PCD spots
+- Electric spots
+- Motorcycle spots
+- Premium sectors
+- Free, reserved, and occupied states
+
+Vehicle compatibility is evaluated at the parking spot level.
 
 ---
 
 # Features
 
-## Authentication
+## Authentication & Security
 
-- JWT Authentication
-- BCrypt Password Encryption
-- Role-based Authorization
+- JWT authentication
+- BCrypt password encoding
+- Stateless authentication
+- Role-based authorization
+- Global exception handling
+- Request validation
 
-## Parking
+## Parking Management
 
-- Single Parking Management
-- Parking Configuration
-- Capacity Management
+- Parking management
+- Parking sector management
+- Parking spot management
+- Vehicle management
+- Parking session management
+- Dynamic filtering using specifications
+- Parking occupancy metrics
 
-## Parking Sectors
+## Simulation Engine
 
-- Sector Management
-- Multiple Floor Support
-- Sector Types
-- Activation / Deactivation
+The simulation engine operates continuously in real time and reproduces the operational behavior of the parking
+facility.
 
-## Parking Spots
+It includes:
 
-- Parking Spot Management
-- Availability Control
-- Occupancy Metrics
-- Dynamic Filtering
+- Simulation clock
+- Tick processing
+- Operating-hours control
+- Vehicle generation
+- Vehicle selection
+- Entry flow
+- Entry queues
+- Entry gates
+- Parking allocation
+- Parking sessions
+- Stay profiles
+- Exit decisions
+- Exit flow
+- Exit queues
+- Exit gates
+- Recovery after application restart
+- Simulation logging
+- Occupancy and operational metrics
 
-## Vehicles
+## Vehicle Simulation
 
-- Vehicle Registry
-- Vehicle Types
-- Brazilian License Plate Validation
-- Activation / Deactivation
+Generated vehicles can receive:
 
-## Parking Sessions
+- License plate
+- Vehicle type
+- Color
+- Stay profile
+- PCD priority flag
 
-- Vehicle Check-in
-- Vehicle Check-out
-- Session Lifecycle
-- Duplicate Session Prevention
-- Parking Spot Allocation
-- Dynamic Filtering
+The simulation supports different stay profiles:
+
+- Short
+- Normal
+- Long
+- Very Long
+- Recovery
+
+Vehicle selection can either generate a new vehicle or reuse an existing vehicle that does not currently have an open
+parking session.
 
 ---
 
-# Project Structure
+# Parking Allocation
 
-```
-src
-├── config
-├── controller
-├── dto
-│   ├── filter
-│   ├── request
-│   └── response
-├── entity
-├── enums
-├── exception
-├── repository
-├── security
-├── service
-├── specification
-└── util
+Parking allocation is based on parking spot type and vehicle characteristics.
 
-docs
-├── Product Vision
-├── Functional Requirements
-├── Business Rules
-├── Domain Model
-├── Data Model
-├── REST API Specification
-├── Application Architecture
-└── Technologies & Infrastructure
-```
+PCD vehicles prefer PCD spots but can use regular spots when no PCD spot is available.
+
+Electric vehicles prefer electric spots but can use regular spots when necessary.
+
+Regular vehicles cannot use electric spots.
+
+Motorcycles use motorcycle spots and can fall back to regular spots when motorcycle spots are unavailable.
+
+Eligible parking spots are selected randomly.
+
+Larger sectors naturally receive more vehicles because they contain more eligible parking spots.
+
+---
+
+# Daily Reporting
+
+Lindvior includes an asynchronous daily reporting system using RabbitMQ.
+
+<pre>
+DailyReportScheduler
+        │
+        ▼
+DailyReportProducer
+        │
+        ▼
+     RabbitMQ
+        │
+        ▼
+DailyReportConsumer
+        │
+        ▼
+   ReportService
+        │
+        ▼
+DailyReportPdfGenerator
+        │
+        ▼
+       PDF
+</pre>
+
+The daily report is reconstructed from historical data stored in PostgreSQL.
+
+It includes information such as:
+
+- Total entries
+- Completed sessions
+- Average stay
+- Shortest stay
+- Longest stay
+- Average occupancy
+- Maximum occupancy
+- Minimum occupancy
+- Peak occupancy time
+- Sector performance
+
+---
+
+# Technology Stack
+
+## Backend
+
+- Java 21
+- Spring Boot 4.x
+- Spring Data JPA
+- Hibernate
+- Spring Security
+- JWT
+- Jakarta Validation
+- Gradle
+
+## Database
+
+- PostgreSQL 17
+
+## Cache
+
+- Redis
+
+## Messaging
+
+- RabbitMQ
+- Spring AMQP
+
+## Reporting
+
+- Apache PDFBox
+
+## Testing
+
+- JUnit 5
+- Mockito
+
+## Infrastructure
+
+- Docker / Docker Compose — in progress
+- Apache Kafka — in progress
 
 ---
 
 # Testing
 
-The project includes comprehensive unit tests covering the business layer.
+The project uses automated tests to validate business rules and core simulation behavior.
 
-Covered services:
+Current tests cover areas such as:
 
-- ParkingService
-- ParkingSectorService
-- ParkingSpotService
-- ParkingSessionService
-- VehicleService
+- Parking services
+- Parking spot allocation
+- Parking session behavior
+- Vehicle services
+- Vehicle attribute generation
+- Vehicle generation
+- Vehicle selection
+- Generated vehicle factory
+- Simulation business rules
 
-Frameworks:
+Examples of tested rules include:
 
-- JUnit 5
-- Mockito
+<pre>
+PCD Vehicle
+    → PCD Spot Preferred
+    → Regular Fallback
 
----
+Electric Vehicle
+    → Electric Spot Preferred
+    → Regular Fallback
 
-# Roadmap
+Regular Vehicle
+    → Regular Spot
+    → Never Electric Spot
+</pre>
 
-## Completed
+Run the complete test suite with:
 
-- Domain Modeling
-- REST API
-- Authentication
-- Administrative Module
-- Dynamic Filtering
-- Specifications
-- Business Rule Validation
-- Unit Tests
-
-## In Progress
-
-- Simulation Engine
-
-## Planned
-
-- Vehicle Generator
-- Parking Simulation
-- Real-Time Scheduler
-- Dashboard
-- Redis
-- Docker
-- RabbitMQ
-- Kafka
-- Observability
-- Prometheus
-- Grafana
-- CI/CD
+    ./gradlew clean test
 
 ---
 
-# Getting Started
+# Project Structure
 
-Clone the repository
-
-```bash
-git clone https://github.com/RickAvles/smart-parking-platform.git
-```
-
-Run the application
-
-```bash
-./gradlew bootRun
-```
-
-Run unit tests
-
-```bash
-./gradlew test
-```
+<pre>
+src/main/java/com/rick/smartparkingplatform
+│
+├── config
+│   ├── rabbitmq
+│   └── ...
+│
+├── controller
+├── dto
+│   ├── filter
+│   ├── messaging
+│   ├── request
+│   └── response
+│
+├── entity
+├── enums
+├── exception
+├── mapper
+├── repository
+├── report
+├── security
+├── service
+├── simulation
+│   ├── engine
+│   ├── logger
+│   ├── metrics
+│   ├── parking
+│   ├── queue
+│   ├── recovery
+│   └── vehicle
+│
+└── specification
+</pre>
 
 ---
 
 # Documentation
 
-The project is fully documented before implementation.
-
-Available documentation includes:
+The project includes technical documentation covering:
 
 - Product Vision
 - Functional Requirements
@@ -255,18 +364,98 @@ Available documentation includes:
 - Data Model
 - REST API Specification
 - Application Architecture
-- Technologies & Infrastructure
+- Technologies and Infrastructure
+- Simulation Engine Specification
+- Simulation Engine Refactoring Plan
+
+The documentation was created alongside the implementation to keep the requirements, business rules, domain model,
+architecture, data model, API, and simulation engine aligned.
 
 ---
 
-# Future Vision
+# Roadmap
 
-Lindvior is evolving into a fully autonomous parking simulation platform capable of reproducing realistic parking
-behavior through configurable business rules, scheduled events, vehicle generation, occupancy metrics, and operational
-monitoring.
+The core backend and simulation engine are complete.
 
-The long-term goal is to demonstrate modern backend architecture using distributed systems, messaging, caching,
-observability, and cloud-native deployment practices.
+The remaining work is focused on infrastructure and the presentation layer.
+
+### Completed
+
+- [x] Product and domain modeling
+- [x] PostgreSQL persistence
+- [x] REST API
+- [x] Authentication and authorization
+- [x] Parking management
+- [x] Sector management
+- [x] Parking spot management
+- [x] Vehicle management
+- [x] Parking sessions
+- [x] Dynamic filtering and specifications
+- [x] Business-rule validation
+- [x] Simulation engine
+- [x] Vehicle generation
+- [x] Parking allocation
+- [x] Entry and exit flows
+- [x] Stay profiles
+- [x] Simulation recovery
+- [x] Occupancy and operational metrics
+- [x] Redis
+- [x] RabbitMQ
+- [x] Daily PDF reports
+- [x] Automated tests
+
+### In Progress
+
+- [ ] Docker
+- [ ] Apache Kafka
+- [ ] Frontend
+
+---
+
+# Running the Project
+
+## Prerequisites
+
+- Java 21
+- PostgreSQL
+- Redis
+- RabbitMQ
+
+## Clone the Repository
+
+    git clone https://github.com/RickAvles/smart-parking-platform.git
+    cd smart-parking-platform
+
+## Run the Application
+
+    ./gradlew bootRun
+
+## Run the Tests
+
+    ./gradlew clean test
+
+---
+
+# Project Goal
+
+Lindvior was developed as a portfolio project focused on practical backend engineering and the integration of modern
+application technologies.
+
+The project demonstrates experience with:
+
+- Java and Spring Boot
+- REST API development
+- Domain modeling
+- PostgreSQL and JPA/Hibernate
+- Spring Security and JWT
+- Automated testing
+- Real-time simulation
+- Redis caching
+- RabbitMQ messaging
+- PDF report generation
+- Application architecture
+
+The remaining infrastructure work will add Docker and Apache Kafka, followed by the frontend layer.
 
 ---
 

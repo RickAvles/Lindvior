@@ -11,13 +11,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class SessionMetricsService {
 
-    private final Map<UUID, SessionMetrics> sessions =
-            new ConcurrentHashMap<>();
+    private final Map<UUID, SessionMetrics> sessions = new ConcurrentHashMap<>();
 
     // Inicializa as métricas temporárias de uma nova sessão.
-    public void startSession(
-            ParkingSession parkingSession,
-            LocalDateTime currentTime) {
+    public void startSession(ParkingSession parkingSession, LocalDateTime currentTime) {
 
         SessionMetrics metrics = new SessionMetrics();
 

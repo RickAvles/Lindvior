@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Component
 public class VehicleMapper {
 
-    // Cria um veículo.
+    // Cria um veículo a partir dos dados informados pela API.
     public Vehicle toEntity(VehicleRequest request) {
 
         Vehicle vehicle = new Vehicle();
@@ -20,11 +20,11 @@ public class VehicleMapper {
         vehicle.setLicensePlate(request.licensePlate());
         vehicle.setType(request.type());
         vehicle.setColor(request.color());
+        vehicle.setPcd(request.pcd());
         vehicle.setActive(true);
         vehicle.setCreatedAt(LocalDateTime.now());
 
         return vehicle;
-
     }
 
     // Cria um veículo da simulação.
@@ -32,7 +32,8 @@ public class VehicleMapper {
             String licensePlate,
             VehicleType type,
             String color,
-            StayProfile stayProfile) {
+            StayProfile stayProfile,
+            boolean pcd) {
 
         Vehicle vehicle = new Vehicle();
 
@@ -40,14 +41,14 @@ public class VehicleMapper {
         vehicle.setType(type);
         vehicle.setColor(color);
         vehicle.setStayProfile(stayProfile);
+        vehicle.setPcd(pcd);
         vehicle.setActive(true);
         vehicle.setCreatedAt(LocalDateTime.now());
 
         return vehicle;
-
     }
 
-    // Atualiza um veículo.
+    // Atualiza um veículo com os dados informados pela API.
     public void updateEntity(
             Vehicle vehicle,
             VehicleRequest request) {
@@ -55,7 +56,7 @@ public class VehicleMapper {
         vehicle.setLicensePlate(request.licensePlate());
         vehicle.setType(request.type());
         vehicle.setColor(request.color());
-
+        vehicle.setPcd(request.pcd());
     }
 
     // Converte uma entidade para o DTO de resposta.
@@ -66,10 +67,9 @@ public class VehicleMapper {
                 vehicle.getLicensePlate(),
                 vehicle.getType(),
                 vehicle.getColor(),
+                vehicle.isPcd(),
                 vehicle.isActive(),
                 vehicle.getCreatedAt()
         );
-
     }
-
 }

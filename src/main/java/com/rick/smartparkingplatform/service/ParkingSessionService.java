@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -214,6 +215,19 @@ public class ParkingSessionService {
     // RELATÓRIOS
     // =====================================================
 
-    // Nenhum méto do por enquanto.
+    /// Retorna as sessões iniciadas dentro do período informado.
+    public List<ParkingSession> findByEntryTimeBetween(LocalDateTime start, LocalDateTime end) {
+
+        return parkingSessionRepository.findByEntryTimeGreaterThanEqualAndEntryTimeLessThan(start, end);
+    }
+    
+    // Calcula a duração da sessão em minutos.
+    private long calculateStayMinutes(ParkingSession session) {
+
+        return Duration.between(
+                session.getEntryTime(),
+                session.getExitTime()
+        ).toMinutes();
+    }
 
 }

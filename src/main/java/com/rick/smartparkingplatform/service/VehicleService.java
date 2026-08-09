@@ -122,13 +122,15 @@ public class VehicleService {
             String licensePlate,
             VehicleType type,
             String color,
-            StayProfile stayProfile) {
+            StayProfile stayProfile,
+            boolean pcd) {
 
         Vehicle vehicle = mapper.toGeneratedEntity(
                 licensePlate,
                 type,
                 color,
-                stayProfile
+                stayProfile,
+                pcd
         );
 
         return vehicleRepository.save(vehicle);

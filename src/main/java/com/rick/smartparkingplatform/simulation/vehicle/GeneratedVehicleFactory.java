@@ -27,7 +27,8 @@ public class GeneratedVehicleFactory {
                 licensePlate,
                 vehicleAttributeGenerator.generateVehicleType(),
                 vehicleAttributeGenerator.generateColor(),
-                vehicleAttributeGenerator.generateStayProfile()
+                vehicleAttributeGenerator.generateStayProfile(),
+                vehicleAttributeGenerator.generatePcd()
         );
     }
 

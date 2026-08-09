@@ -2,14 +2,13 @@ package com.rick.smartparkingplatform.repository;
 
 import com.rick.smartparkingplatform.entity.ParkingSector;
 import com.rick.smartparkingplatform.entity.ParkingSpot;
+import com.rick.smartparkingplatform.enums.ParkingSpotType;
 import com.rick.smartparkingplatform.enums.StatusParkingSpot;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -28,15 +27,11 @@ public interface ParkingSpotRepository extends JpaRepository<ParkingSpot, UUID>,
     // SIMULAÇÃO
     // =====================================================
 
-    @Query("""
-            SELECT ps
-            FROM ParkingSpot ps
-            WHERE ps.status = 'FREE'
-              AND ps.active = true
-            ORDER BY ps.createdAt
-            LIMIT 1
-            """)
-    Optional<ParkingSpot> findNextAvailableSpot();
+    // Retorna todas as vagas livres e ativas de um determinado tipo.
+    List<ParkingSpot> findByStatusAndActiveTrueAndType(
+            StatusParkingSpot status,
+            ParkingSpotType type
+    );
 
     // =====================================================
     // RELATÓRIOS

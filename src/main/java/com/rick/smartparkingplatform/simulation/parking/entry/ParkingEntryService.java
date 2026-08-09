@@ -95,17 +95,11 @@ public class ParkingEntryService {
 
         parkingSessionService.validateNoOpenSession(vehicle);
 
-        ParkingSpot parkingSpot = parkingSpotService.reserveAvailableSpot();
+        ParkingSpot parkingSpot = parkingSpotService.reserveAvailableSpot(vehicle);
 
-        ParkingSession parkingSession = parkingSessionService.startEntering(
-                vehicle,
-                parkingSpot
-        );
+        ParkingSession parkingSession = parkingSessionService.startEntering(vehicle, parkingSpot);
 
-        sessionMetricsService.startSession(
-                parkingSession,
-                simulationClock.getCurrentTime()
-        );
+        sessionMetricsService.startSession(parkingSession, simulationClock.getCurrentTime());
 
         simulationStatisticsService.recordEntry();
 

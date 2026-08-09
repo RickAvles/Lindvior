@@ -2,8 +2,11 @@ package com.rick.smartparkingplatform.service;
 
 import com.rick.smartparkingplatform.dto.request.ParkingSectorRequest;
 import com.rick.smartparkingplatform.dto.response.ParkingSectorResponse;
+import com.rick.smartparkingplatform.dto.response.SectorReport;
 import com.rick.smartparkingplatform.entity.Parking;
 import com.rick.smartparkingplatform.entity.ParkingSector;
+import com.rick.smartparkingplatform.entity.ParkingSpot;
+import com.rick.smartparkingplatform.enums.StatusParkingSpot;
 import com.rick.smartparkingplatform.exception.ParkingNotFoundException;
 import com.rick.smartparkingplatform.exception.ParkingSectorAlreadyExistsException;
 import com.rick.smartparkingplatform.exception.ResourceNotFoundException;
@@ -121,6 +124,42 @@ public class ParkingSectorService {
     // RELATÓRIOS
     // =====================================================
 
-    // Nenhum méto do por enquanto.
+    // Calcula os indicadores de um setor.
+    private SectorReport toSectorReport(ParkingSector sector) {
+
+        List<ParkingSpot> activeSpots = sector.getParkingSpots()
+                .stream()
+                .filter(ParkingSpot::isActive)
+                .toList();
+
+        long capacity = activeSpots.size();
+
+        long occupied = activeSpots.stream()
+                .filter(spot -> spot.getStatus() == StatusParkingSpot.OCCUPIED)
+                .count();
+
+        long available = activeSpots.stream()
+                .filter(spot -> spot.getStatus() == StatusParkingSpot.FREE)
+                .count();
+
+        long reserved = activeSpots.stream()
+                .filter(spot -> spot.getStatus() == StatusParkingSpot.RESERVED)
+                .count();
+
+        double occupancyRate = capacity == 0
+                ? 0.0
+                : ((double) occupied / capacity) * 100;
+
+        return new SectorReport(
+                sector.getName(),
+                sector.getType().name(),
+                sector.getFloor(),
+                capacity,
+                occupied,
+                available,
+                reserved,
+                occupancyRate
+        );
+    }
 
 }
