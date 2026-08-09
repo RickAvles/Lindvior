@@ -43,6 +43,10 @@ public class Vehicle {
     @Column(nullable = false)
     private StayProfile stayProfile;
 
+    // Indica se o veículo pertence a um usuário PCD.
+    @Column(nullable = false)
+    private boolean pcd = false;
+
     // Indica se o veículo está ativo.
     @Column(nullable = false)
     private boolean active = true;

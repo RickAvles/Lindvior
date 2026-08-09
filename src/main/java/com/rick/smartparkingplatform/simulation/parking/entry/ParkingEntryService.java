@@ -95,7 +95,7 @@ public class ParkingEntryService {
 
         parkingSessionService.validateNoOpenSession(vehicle);
 
-        ParkingSpot parkingSpot = parkingSpotService.reserveAvailableSpot();
+        ParkingSpot parkingSpot = parkingSpotService.reserveAvailableSpot(vehicle);
 
         ParkingSession parkingSession = parkingSessionService.startEntering(
                 vehicle,

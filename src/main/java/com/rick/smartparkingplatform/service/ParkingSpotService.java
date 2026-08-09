@@ -6,6 +6,8 @@ import com.rick.smartparkingplatform.dto.response.OccupancyResponse;
 import com.rick.smartparkingplatform.dto.response.ParkingSpotResponse;
 import com.rick.smartparkingplatform.entity.ParkingSector;
 import com.rick.smartparkingplatform.entity.ParkingSpot;
+import com.rick.smartparkingplatform.entity.Vehicle;
+import com.rick.smartparkingplatform.enums.ParkingSpotType;
 import com.rick.smartparkingplatform.enums.StatusParkingSpot;
 import com.rick.smartparkingplatform.exception.NoParkingSpotsAvailableException;
 import com.rick.smartparkingplatform.exception.ParkingSpotAlreadyExistsException;
@@ -24,6 +26,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -155,22 +158,82 @@ public class ParkingSpotService {
         return (double) occupiedSpots / totalSpots;
     }
 
-    // Reserva a próxima vaga disponível.
-    public ParkingSpot reserveAvailableSpot() {
+    // Reserva uma vaga compatível com o tipo do veículo.
+    public ParkingSpot reserveAvailableSpot(Vehicle vehicle) {
 
-        ParkingSpot parkingSpot = findAvailableSpot();
+        ParkingSpot parkingSpot = findAvailableSpot(vehicle);
 
-        updateStatus(parkingSpot, StatusParkingSpot.RESERVED);
+        updateStatus(
+                parkingSpot,
+                StatusParkingSpot.RESERVED
+        );
 
         return parkingSpot;
     }
 
-    // Busca a próxima vaga livre.
-    private ParkingSpot findAvailableSpot() {
+    // Busca uma vaga disponível respeitando a preferência do veículo.
+// Caso não exista vaga preferencial, utiliza uma vaga REGULAR como alternativa.
+    private ParkingSpot findAvailableSpot(Vehicle vehicle) {
 
-        return parkingSpotRepository
-                .findNextAvailableSpot()
-                .orElseThrow(NoParkingSpotsAvailableException::new);
+        ParkingSpotType preferredType = getPreferredSpotType(vehicle);
+
+        List<ParkingSpot> preferredSpots =
+                parkingSpotRepository.findByStatusAndActiveTrueAndType(
+                        StatusParkingSpot.FREE,
+                        preferredType
+                );
+
+        if (!preferredSpots.isEmpty()) {
+            return getRandomSpot(preferredSpots);
+        }
+
+        // Se a vaga preferencial estiver indisponível,
+        // veículos compatíveis podem utilizar uma vaga REGULAR.
+        if (preferredType != ParkingSpotType.REGULAR) {
+
+            List<ParkingSpot> regularSpots =
+                    parkingSpotRepository.findByStatusAndActiveTrueAndType(
+                            StatusParkingSpot.FREE,
+                            ParkingSpotType.REGULAR
+                    );
+
+            if (!regularSpots.isEmpty()) {
+                return getRandomSpot(regularSpots);
+            }
+        }
+
+        throw new NoParkingSpotsAvailableException();
+    }
+
+    // Determina o tipo de vaga preferencial para o veículo.
+    private ParkingSpotType getPreferredSpotType(Vehicle vehicle) {
+
+        // Veículos PCD possuem prioridade sobre vagas PCD.
+        if (vehicle.isPcd()) {
+            return ParkingSpotType.PCD;
+        }
+
+        return switch (vehicle.getType()) {
+
+            // Motocicletas devem utilizar vagas de motocicleta.
+            case MOTORCYCLE -> ParkingSpotType.MOTORCYCLE;
+
+            // Veículos elétricos priorizam vagas elétricas.
+            case ELECTRIC -> ParkingSpotType.ELECTRIC;
+
+            // Demais veículos utilizam vagas regulares.
+            default -> ParkingSpotType.REGULAR;
+        };
+    }
+
+    // Escolhe aleatoriamente uma das vagas disponíveis.
+    private ParkingSpot getRandomSpot(List<ParkingSpot> spots) {
+
+        int index =
+                ThreadLocalRandom.current()
+                        .nextInt(spots.size());
+
+        return spots.get(index);
     }
 
     // Ocupa uma vaga.
@@ -202,23 +265,26 @@ public class ParkingSpotService {
             long totalSpots,
             long availableSpots,
             long occupiedSpots,
+            long reservedSpots,
             BigDecimal occupancyRate) {
 
         return new ParkingOccupancy(
                 totalSpots,
                 availableSpots,
                 occupiedSpots,
+                reservedSpots,
                 occupancyRate
         );
     }
 
-    // Calcula o estado atual de ocupação do estacionamento.
+    // Calcula a ocupação atual do estacionamento.
     public ParkingOccupancy getParkingOccupancy() {
 
         long totalSpots = parkingSpotRepository.countByActiveTrue();
 
         if (totalSpots == 0) {
             return toParkingOccupancy(
+                    0,
                     0,
                     0,
                     0,
@@ -231,20 +297,18 @@ public class ParkingSpotService {
                         StatusParkingSpot.FREE
                 );
 
-        long reservedSpots =
-                parkingSpotRepository.countByStatusAndActiveTrue(
-                        StatusParkingSpot.RESERVED
-                );
-
         long occupiedSpots =
                 parkingSpotRepository.countByStatusAndActiveTrue(
                         StatusParkingSpot.OCCUPIED
                 );
 
-        long unavailableSpots = reservedSpots + occupiedSpots;
+        long reservedSpots =
+                parkingSpotRepository.countByStatusAndActiveTrue(
+                        StatusParkingSpot.RESERVED
+                );
 
         double occupancy =
-                ((double) unavailableSpots / (double) totalSpots) * 100;
+                ((double) occupiedSpots / (double) totalSpots) * 100;
 
         BigDecimal occupancyRate = BigDecimal.valueOf(occupancy)
                 .setScale(2, RoundingMode.HALF_UP);
@@ -252,7 +316,8 @@ public class ParkingSpotService {
         return toParkingOccupancy(
                 totalSpots,
                 availableSpots,
-                unavailableSpots,
+                occupiedSpots,
+                reservedSpots,
                 occupancyRate
         );
     }

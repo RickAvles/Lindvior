@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,4 +45,11 @@ public interface ParkingSessionRepository extends JpaRepository<ParkingSession, 
                 WHERE ps.status = :status
             """)
     List<ParkingSession> findByStatusFetchVehicleAndSpot(@Param("status") StatusParkingSession status);
+
+    // =====================================================
+    // RELATÒRIO
+    // =====================================================
+
+    // Busca as sessões iniciadas dentro do período informado.
+    List<ParkingSession> findByEntryTimeGreaterThanEqualAndEntryTimeLessThan(LocalDateTime start, LocalDateTime end);
 }

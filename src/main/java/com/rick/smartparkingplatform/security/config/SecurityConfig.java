@@ -51,10 +51,11 @@ public class SecurityConfig {
                                 "/actuator/health",
                                 "/actuator/info",
                                 "/actuator/metrics",
-                                "/actuator/prometheus"
+                                "/actuator/prometheus",
+                                "/actuator/beans",
+                                "/actuator/conditions"
                         )
                         .permitAll()
-
                         //testes
                         .requestMatchers(
                                 "/ws",

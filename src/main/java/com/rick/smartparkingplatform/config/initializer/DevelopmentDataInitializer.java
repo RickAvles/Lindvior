@@ -91,10 +91,10 @@ public class DevelopmentDataInitializer implements CommandLineRunner {
 
         parkingSectors.add(createSector(parking, "A", ParkingSectorType.REGULAR, 1));
         parkingSectors.add(createSector(parking, "B", ParkingSectorType.REGULAR, 1));
-        parkingSectors.add(createSector(parking, "B", ParkingSectorType.REGULAR, 1));
-        parkingSectors.add(createSector(parking, "C", ParkingSectorType.MOTORCYCLE, 1));
-        parkingSectors.add(createSector(parking, "D", ParkingSectorType.ELECTRIC, 1));
-        parkingSectors.add(createSector(parking, "E", ParkingSectorType.PREMIUM, 2));
+        parkingSectors.add(createSector(parking, "C", ParkingSectorType.REGULAR, 1));
+        parkingSectors.add(createSector(parking, "D", ParkingSectorType.MOTORCYCLE, 1));
+        parkingSectors.add(createSector(parking, "E", ParkingSectorType.ELECTRIC, 1));
+        parkingSectors.add(createSector(parking, "F", ParkingSectorType.PREMIUM, 2));
 
         return parkingSectorRepository.saveAll(parkingSectors);
 

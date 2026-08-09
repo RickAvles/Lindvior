@@ -9,6 +9,8 @@ import java.util.concurrent.ThreadLocalRandom;
 @Service
 public class VehicleAttributeGenerator {
 
+    private static final int PCD_PROBABILITY_PERCENT = 2;
+
     // Gera aleatoriamente o perfil de permanência do veículo.
     public StayProfile generateStayProfile() {
 
@@ -99,6 +101,14 @@ public class VehicleAttributeGenerator {
         }
 
         return "Yellow";
+    }
+
+    // Gera aleatoriamente se o veículo possui prioridade PCD.
+    public boolean generatePcd() {
+
+        int value = ThreadLocalRandom.current().nextInt(100);
+
+        return value < PCD_PROBABILITY_PERCENT;
     }
 
 }
